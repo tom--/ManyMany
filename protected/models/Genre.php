@@ -1,14 +1,12 @@
 <?php
 
 /**
- * This is the model class for table "genre".
- *
- * The followings are the available columns in table 'genre':
+ * Table attributes:
  * @property string $id
  * @property string $parent_id
  * @property string $name
  *
- * The followings are the available model relations:
+ * Relation attributes:
  * @property Genre $parent
  * @property Genre[] $genres
  * @property Song[] $songs

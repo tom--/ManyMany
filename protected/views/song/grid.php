@@ -1,6 +1,7 @@
 <?php
 /**
- * @var $song Song
+ * @var Song $song
+ * @var Controller|CController $this
  */
 
 $song->criteria = new CDbCriteria;
@@ -8,9 +9,14 @@ $song->criteria = new CDbCriteria;
 /*
  * Now take care here. This is confusing.
  *
- * The only model we have in the local context is $song. It is used for filter inputs.
- * But the method $song->search('song-search') returns a CADP for a SongGenre model.
- * So the names in CDataColumns need to be attributes of SongGenre while the
+ * The only model we have in the local context is $song. It is used for filter inputs,
+ * to house a CDbCriteria object for use in its search() method.
+ *
+ * But the method $song->search() returns a CADP for a SongGenre model, not a Song
+ * model, if the scenario is set to 'SongGenre'. Strange but dig in for the reasons.
+ *
+ * So the names in CDataColumns need to be attributes of the data provider's SongGenre
+ * model while the names of the filter inputs are properties/attributes of $song.
  */
 $columns = array(
 	array(
@@ -36,7 +42,11 @@ $columns = array(
 		'filter' => CHtml::activeTextField($song, 'genre'),
 	),
 );
+
 if ($this->action->id === 'reviews') {
+
+	// This is the bit that doesn't work.
+	// To produce a table of song reviews... How??
 	$columns[] = array(
 		'name' => 'song.reviews.review',
 		'filter' => CHtml::activeTextField($song, 'review'),
@@ -45,9 +55,13 @@ if ($this->action->id === 'reviews') {
 	$song->criteria->with = array('song', 'song.reviews', 'genre');
 	$song->criteria->together = true;
 } else {
+
+	// For a table of songs, no problems.
 	$song->criteria->group = 'song.id';
 	$song->criteria->with = array('song', 'genre');
 }
+
+// Run $song's search to get the CActiveDataProvider.
 $dp = $song->search();
 $dp->pagination->pageSize = 50;
 $grid = array(

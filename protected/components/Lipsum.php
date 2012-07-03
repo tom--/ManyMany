@@ -1168,23 +1168,49 @@ class Lipsum extends CComponent {
 		);
 	}
 
+	/**
+	 * Generate "Lorem ipsum ..." sort of text.
+	 *
+	 * Paragraphs are separated by "\n\n".
+	 *
+	 * @static
+	 * @param int $sentences Number of sentences per paragraph
+	 * @param int $paragraphs Number of paragraphs
+	 * @return string
+	 */
 	public static function getLipsum($sentences = 1, $paragraphs = 1) {
+
+		// Initialize the lipsum array once
 		if (self::$_lipsum === null) {
 			self::setup();
 		}
-		$lastLipsum = count(self::$_lipsum) - 1;
+
+		$maxRow = count(self::$_lipsum) - 1;
+
+		/** @var  array[] $paras Sentence indexes in each para. */
 		$paras = array();
+
+		/** @var string[] $allIndexes Sentence indexes, flattened. */
 		$allIndexes = array();
+
 		for ($p = 0; $p < $paragraphs; $p += 1) {
 			$paras[$p] = array();
+
+			// Avoid using the same sentence twice in the text, within reason.
 			while (count($paras[$p]) < $sentences) {
-				$index = mt_rand(0, $lastLipsum);
-				if (!in_array($index, $allIndexes)) {
+				$index = mt_rand(0, $maxRow);
+
+				// If the sentence isn't a repeat, add it to the text.
+				if (2 * $sentences * $paragraphs > $maxRow
+					|| !in_array($index, $allIndexes)
+				) {
 					$paras[$p][] = $index;
 					$allIndexes[] = $index;
 				}
 			}
 		}
+
+		// Generate the text, given the sentence indexes
 		foreach ($paras as &$para) {
 			foreach ($para as &$sentence) {
 				$sentence = self::$_lipsum[$sentence];

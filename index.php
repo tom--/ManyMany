@@ -1,5 +1,6 @@
 <?php
 
+// local.php is not version controlled. It has things such as YII_DEBUG
 @include 'local.php';
 
 // absolte path to framework so all apps and versions use the same yii

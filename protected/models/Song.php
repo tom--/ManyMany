@@ -1,15 +1,13 @@
 <?php
 
 /**
- * This is the model class for table "song".
- *
- * The followings are the available columns in table 'song':
+ * Table attributes:
  * @property string $id
  * @property string $name
  * @property string $artist
  * @property string $album
  *
- * Relations:
+ * Relation attributes:
  * @property Genre[] $genres
  * @property SongGenre[] $hasGenres
  *
@@ -57,7 +55,8 @@ class Song extends CActiveRecord {
 			'genres' => array(self::HAS_MANY, 'Genre', 'genre_id',
 				'through' => 'hasGenres'),
 			'reviews' => array(self::HAS_MANY, 'Review', 'song_id'),
-			'songs' => array(self::HAS_MANY, 'Reviewer', 'reviewer_id', 'through' => 'reviews'),
+			'songs' => array(self::HAS_MANY, 'Reviewer', 'reviewer_id',
+				'through' => 'reviews'),
 		);
 	}
 

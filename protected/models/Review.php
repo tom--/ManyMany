@@ -1,14 +1,12 @@
 <?php
 
 /**
- * This is the model class for table "review".
- *
- * The followings are the available columns in table 'review':
+ * Table attributes:
  * @property string $reviewer_id
  * @property string $song_id
  * @property string $review
  *
- * Relations:
+ * Relation attributes:
  * @property Reviewer $reviewer
  * @property Song $song
  */

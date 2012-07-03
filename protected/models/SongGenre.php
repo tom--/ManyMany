@@ -1,18 +1,14 @@
 <?php
 
 /**
- * This is the model class for table "song_genre".
- *
- * The followings are the available columns in table 'song_genre':
+ * Table attributes:
  * @property string $song_id
  * @property string $genre_id
  * @property integer $is_primary
  *
- * Relations:
+ * Relation attributes:
  * @property Genre $genre
  * @property Song $song
- *
- * Virtual attributes:
  */
 class SongGenre extends CActiveRecord {
 	public static function model($className = __CLASS__) {
@@ -31,8 +27,8 @@ class SongGenre extends CActiveRecord {
 		return array(
 			'genre' => array(self::BELONGS_TO, 'Genre', 'genre_id'),
 			'song' => array(self::BELONGS_TO, 'Song', 'song_id'),
-//			'reviews' => array(self::HAS_MANY, 'Review', 'song_id', 'through' => 'song'),
-//			'reviewers' => array(self::HAS_MANY, 'Reviewer', 'reviewer_id', 'through' => 'review'),
+			'reviews' => array(self::HAS_MANY, 'Review', 'song_id', 'through' => 'song'),
+			'reviewers' => array(self::HAS_MANY, 'Reviewer', 'reviewer_id', 'through' => 'review'),
 		);
 	}
 
