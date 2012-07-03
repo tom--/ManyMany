@@ -4,4 +4,20 @@ ManyMany
 A Yii app for experimenting with complex grid views
 ----
 
-Try it out.
+The app has a SongController with two actions:
+
+* /index.php?r=song/songs
+* /index.php?r=song/reviews
+
+song/songs is working fine. Filtering is implemented but sorting not yet.
+
+song/reviews is implemented and runs but does not do its job. I do not know how to
+make it work. My ideas include:
+
+* Use the Review model in the grid's data provider. But this creates a problem with
+displating genres. Perhaps with a subquery? Maybe use
+[SQActiveRecord](https://github.com/tom--/SQActiveRecord)?
+
+Um. Ok, that's the only idea I have.
+
+Make suggestions!

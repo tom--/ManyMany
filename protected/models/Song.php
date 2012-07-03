@@ -90,6 +90,7 @@ class Song extends CActiveRecord {
 
 		if ($this->scenario === 'SongGenre') {
 			$dpModel = new SongGenre;
+
 			$criteria->compare('song.name', $this->name, true);
 			$criteria->compare('song.artist', $this->artist, true);
 			$criteria->compare('song.album', $this->album, true);
@@ -98,6 +99,7 @@ class Song extends CActiveRecord {
 			$criteria->compare('song.reviews.reviewer.name', $this->reviewer, true);
 		} else {
 			$dpModel = new Song;
+
 			$criteria->compare('name', $this->name, true);
 			$criteria->compare('artist', $this->artist, true);
 			$criteria->compare('album', $this->album, true);

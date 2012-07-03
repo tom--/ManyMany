@@ -59,6 +59,7 @@ if ($this->action->id === 'reviews') {
 	// For a table of songs, no problems.
 	$song->criteria->group = 'song.id';
 	$song->criteria->with = array('song', 'genre');
+	$song->criteria->together = true;
 }
 
 // Run $song's search to get the CActiveDataProvider.
