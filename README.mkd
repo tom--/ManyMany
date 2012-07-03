@@ -1,0 +1,7 @@
+ManyMany
+====
+
+A Yii app for experimenting with complex grid views
+----
+
+Try it out.
