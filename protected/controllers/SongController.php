@@ -39,35 +39,9 @@ class SongController extends Controller {
 	 * Grid of all song reviews
 	 */
 	public function actionReviews() {
-		$review = new Review('search');
-		$review->unsetAttributes();
-		$song = new Song('search');
-		$song->unsetAttributes();
-		$genre = new Genre('search');
-		$genre->unsetAttributes();
-		
-		if (isset($_GET['Review']))
-			$review->attributes = $_GET['Review'];
-		if (isset($_GET['Song']))
-			$song->attributes = $_GET['Song'];
-		if (isset($_GET['Genre']))
-			$genre->attributes = $_GET['Genre'];
-		
-		$review->searchSong = $song;
-		$review->searchGenre = $genre;
-		
-		if(!isset($_GET['ajax']))
-			$this->render('reviewsGrid', array(
-				'review' => $review,
-				'song' => $song,
-				'genre' => $genre,
-			));
-		else
-			$this->renderPartial('reviewsGrid', array(
-				'review' => $review,
-				'song' => $song,
-				'genre' => $genre,
-			));
+		$this->render('grid', array(
+			'song' => $this->searchSong('Review'),
+		));
 	}
 
 	public function actionAddReviews() {
