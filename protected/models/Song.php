@@ -46,8 +46,8 @@ class Song extends CActiveRecord {
 
 	public function rules() {
 		return array(
-			array('name, artist, album', 'safe', 'on' => 'search, SongGenre'),
-			array('genre, review, reviewer', 'safe', 'on' => 'SongGenre'),
+			array('name, artist, album', 'safe', 'on' => 'search, SongGenre, Review'),
+			array('genre, review, reviewer', 'safe', 'on' => 'SongGenre, Review'),
 		);
 	}
 
@@ -97,8 +97,15 @@ class Song extends CActiveRecord {
 			$criteria->compare('song.artist', $this->artist, true);
 			$criteria->compare('song.album', $this->album, true);
 			$criteria->compare('genre.name', $this->genre, true);
-			$criteria->compare('song.reviews.review', $this->review, true);
-			$criteria->compare('song.reviews.reviewer.name', $this->reviewer, true);
+		} elseif ($this->scenario === 'Review') {
+			$dpModel = new Review;
+
+			$criteria->compare('song.name', $this->name, true);
+			$criteria->compare('song.artist', $this->artist, true);
+			$criteria->compare('song.album', $this->album, true);
+			$criteria->compare('song.genre.name', $this->genre, true);
+			$criteria->compare('t.review', $this->review, true);
+			$criteria->compare('reviewer.name', $this->reviewer, true);
 		} else {
 			$dpModel = new Song;
 
@@ -110,6 +117,26 @@ class Song extends CActiveRecord {
 		if ($this->criteria) {
 			$criteria->mergeWith($this->criteria);
 		}
+
+		$sort->attributes = array(
+			'defaultOrder' => 'song.name asc',
+			'song.name' => array(
+				'asc' => 'song.name asc',
+				'desc' => 'song.name desc',
+			),
+			'song.artist' => array(
+				'asc' => 'song.artist asc',
+				'desc' => 'song.artist desc',
+			),
+			'song.album' => array(
+				'asc' => 'song.album asc',
+				'desc' => 'song.album desc',
+			),
+			'review' => array(
+				'asc' => 't.review asc',
+				'desc' => 't.review desc',
+			),
+		);
 
 		return new CActiveDataProvider($dpModel, array(
 			'criteria' => $criteria,

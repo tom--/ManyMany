@@ -37,7 +37,7 @@ $columns = array(
 	),
 	array(
 		'type' => 'raw',
-		'header' => 'Genres',
+		'name' => 'genres',
 		'value' => 'Help::tags($data->song->genreNames, "genres", true)',
 		'filter' => CHtml::activeTextField($song, 'genre'),
 	),
@@ -48,18 +48,16 @@ if ($this->action->id === 'reviews') {
 	// This is the bit that doesn't work.
 	// To produce a table of song reviews... How??
 	$columns[] = array(
-		'name' => 'song.reviews.review',
+		'name' => 'review',
 		'filter' => CHtml::activeTextField($song, 'review'),
 	);
-	$song->criteria->group = 'reviews.song_id, reviews.reviewer_id';
-	$song->criteria->with = array('song', 'song.reviews', 'genre');
-	$song->criteria->together = true;
+	//$song->criteria->group = 'song_id, reviewer_id';
+	$song->criteria->with = array('song', 'song.hasGenres', 'song.genres');
 } else {
 
 	// For a table of songs, no problems.
 	$song->criteria->group = 'song.id';
 	$song->criteria->with = array('song', 'genre');
-	$song->criteria->together = true;
 }
 
 // Run $song's search to get the CActiveDataProvider.
@@ -70,6 +68,7 @@ $grid = array(
 	'dataProvider' => $dp,
 	'filter' => $song,
 	'columns' => $columns,
+	'ajaxUpdate' => false,
 );
 
 echo CHtml::tag('h1', array(), 'Manage ' . $this->action->id);

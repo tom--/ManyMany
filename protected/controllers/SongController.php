@@ -40,32 +40,44 @@ class SongController extends Controller {
 	 */
 	public function actionReviews() {
 		$this->render('grid', array(
-			'song' => $this->searchSong('SongGenre'),
+			'song' => $this->searchSong('Review'),
 		));
 	}
 
-	/*
 	public function actionAddReviews() {
-		$nSongs = Song::model()->count() - 1;
-		$reviewers = Reviewer::model()->findAll();
-		foreach ($reviewers as $reviewer) {
-			$nreviews = mt_rand(0, 4);
-			if ($nreviews) {
-				for ($i = 0; $i < $nreviews; $i += 1) {
-					$review = new Review;
-					$review->reviewer_id = $reviewer->id;
-					$review->review = Lipsum::getLipsum(mt_rand(1,3));
-					$row = mt_rand(0, $nSongs);
-					$review->song_id = Yii::app()->db->createCommand(
-						"select id from song limit $row, 1"
-					)->queryScalar();
-					$review->save();
-				}
+		$crit = new CDbCriteria;
+		$crit->order = 'id';
+		$crit->limit = 1;
+		$crit->offset = 0;
+
+		$maxReviewer = Reviewer::model()->count() - 1;
+
+		/** @var $song Song */
+		while ($song = Song::model()->find($crit)) {
+			$crit->offset += 1;
+			if (mt_rand(0, 1) === 0) {
+				continue;
+			}
+			$nreviews = mt_rand(1, 3);
+			$reviewers = array();
+			for ($i = 0; $i < $nreviews; $i += 1) {
+				$review = new Review;
+				$review->song_id = $song->id;
+				$review->review = Lipsum::getLipsum(mt_rand(1, 3));
+				do {
+					$review->reviewer_id = Reviewer::model()->find(array(
+						'order' => 'id',
+						'limit' => 1,
+						'offset' => mt_rand(0, $maxReviewer),
+					))->id;
+				} while (in_array($review->reviewer_id, $reviewers));
+				$reviewers[] = $review->reviewer_id;
+				$review->save();
 			}
 		}
-		$this->redirect(array('admin'));
+
+		$this->redirect(array('reviews'));
 	}
-	*/
 
 	/**
 	 * Returns a Song model given its primary key.
