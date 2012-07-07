@@ -9,6 +9,8 @@
  * Relation attributes:
  * @property Genre $genre
  * @property Song $song
+ * @property Review[] $reviews
+ * @property Reviewer[] $reviewers
  */
 class SongGenre extends CActiveRecord {
 	public static function model($className = __CLASS__) {

@@ -10,6 +10,8 @@
  * Relation attributes:
  * @property Genre[] $genres
  * @property SongGenre[] $hasGenres
+ * @property Review[] $reviews
+ * @property Reviewer[] $reviewers
  *
  * Virtual attributes:
  * @property array $genreNames
@@ -55,7 +57,7 @@ class Song extends CActiveRecord {
 			'genres' => array(self::HAS_MANY, 'Genre', 'genre_id',
 				'through' => 'hasGenres'),
 			'reviews' => array(self::HAS_MANY, 'Review', 'song_id'),
-			'songs' => array(self::HAS_MANY, 'Reviewer', 'reviewer_id',
+			'reviewers' => array(self::HAS_MANY, 'Reviewer', 'reviewer_id',
 				'through' => 'reviews'),
 		);
 	}

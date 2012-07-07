@@ -48,10 +48,12 @@ if ($this->action->id === 'reviews') {
 	// This is the bit that doesn't work.
 	// To produce a table of song reviews... How??
 	$columns[] = array(
-		'name' => 'song.reviews.review',
+//		'name' => 'song.reviews.review',
+		'header' => 'Review',
+		'value' => 'var_export($data->song->reviews,1)',
 		'filter' => CHtml::activeTextField($song, 'review'),
 	);
-	$song->criteria->group = 'reviews.song_id';
+	$song->criteria->group = 'reviews.song_id, reviews.reviewer_id';
 	$song->criteria->with = array('song', 'song.reviews', 'genre');
 	$song->criteria->together = true;
 } else {
