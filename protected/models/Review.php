@@ -11,6 +11,9 @@
  * @property Song $song
  */
 class Review extends CActiveRecord {
+	public $searchSong;
+	public $searchGenre;
+	
 	public static function model($className = __CLASS__) {
 		return parent::model($className);
 	}
@@ -18,9 +21,11 @@ class Review extends CActiveRecord {
 	public function tableName() {
 		return 'review';
 	}
-
+	
 	public function rules() {
-		return array();
+		return array(
+			array('review', 'safe', 'on' => 'search'),
+		);
 	}
 
 	public function relations() {
@@ -37,14 +42,26 @@ class Review extends CActiveRecord {
 			'review' => 'Review',
 		);
 	}
-
+	
 	public function search() {
 		$criteria = new CDbCriteria;
-
-		$criteria->compare('reviewer_id', $this->reviewer_id, true);
-		$criteria->compare('song_id', $this->song_id, true);
-		$criteria->compare('review', $this->review, true);
-
+		
+		//Selecting all data from song, because its a has one relation
+		//Not selecting any data from genres, because its lazy loaded anyway by Song::genreNames
+		$criteria->with = array('song', 'song.genres'=>array('select'=>false));
+		$criteria->group = 't.reviewer_id, t.song_id';
+		$criteria->together = true;
+		
+		$criteria->compare('t.reviewer_id', $this->reviewer_id, true);
+		$criteria->compare('t.song_id', $this->song_id, true);
+		$criteria->compare('t.review', $this->review, true);
+		
+		$criteria->compare('song.name', $this->searchSong->name, true);
+		$criteria->compare('song.artist', $this->searchSong->artist, true);
+		$criteria->compare('song.album', $this->searchSong->album, true);
+		$criteria->compare('genres.id', $this->searchGenre->id, true);
+		$criteria->compare('genres.name', $this->searchGenre->name, true);
+		
 		return new CActiveDataProvider($this, array(
 			'criteria' => $criteria,
 		));

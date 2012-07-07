@@ -19,9 +19,11 @@ class Genre extends CActiveRecord {
 	public function tableName() {
 		return 'genre';
 	}
-
+	
 	public function rules() {
-		return array();
+	return array(
+	array('id, name', 'safe', 'on' => 'search'),
+			);
 	}
 
 	public function relations() {
