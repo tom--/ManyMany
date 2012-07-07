@@ -64,6 +64,30 @@ class Review extends CActiveRecord {
 
 		return new CActiveDataProvider($this, array(
 			'criteria' => $criteria,
+        	'sort'=>array(
+        		'defaultOrder'=>array(
+        			'song_id'=>CSort::SORT_ASC,
+        			),
+        		'attributes'=>array(
+        			'song.name'=>array(
+        				'asc'=>'song.name',
+        				'desc'=>'song.name DESC',
+        			),
+        			'song.artist'=>array(
+        				'asc'=>'song.artist',
+        				'desc'=>'song.artist DESC',
+        			),
+        			'song.album'=>array(
+        				'asc'=>'song.album',
+        				'desc'=>'song.album DESC',
+        			),
+        			'genres.name'=>array(
+        				'asc'=>'genres.name',
+        				'desc'=>'genres.name DESC',
+        			),
+        			'*',
+        		),
+        	),
 		));
 	}
 }
