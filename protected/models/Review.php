@@ -101,8 +101,15 @@ class Review extends CActiveRecord {
 	/*
 	 * Search method to enable eager loading, using group_concat
 	 * You need a public property ($allGenres) in the main Model (Review) for this
+	 * 
+	 * If you dont want the public property in this model, but in the related 
+	 * model(where it *should* be actually*, then you need to set it there. However, 
+	 * in that case you will need to do a custom $criteria->join, instead of custom 
+	 * $criteria->select.
+	 * 
 	 * Disadvantage: You dont get 'raw' data back. You can't do things using the
 	 * join table either.
+	 * Advantage: Most efficient eager loading
 	 */
 	public function search2() {
 		$criteria = new CDbCriteria;
@@ -116,7 +123,8 @@ class Review extends CActiveRecord {
 		$criteria->compare('genres.name', $this->searchGenre->name, true);
 		$criteria->select = array(
 			'GROUP_CONCAT(genres.name ORDER BY genres.name SEPARATOR \', \') AS allGenres',
-			'*'
+			't.review',
+			//PK's arent needed in here, they are automatically added.
 		);
 				
 		$criteria->group = 't.reviewer_id, t.song_id';
