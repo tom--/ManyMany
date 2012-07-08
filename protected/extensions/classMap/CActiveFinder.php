@@ -829,12 +829,7 @@ class CJoinElement
 	{
 		## START CHANGES JEROEN ##
 		## Also added public property CJoinQuery::$with
-		$selectsForLimitOffset = array();
-			foreach($query->groups as $group)
-				if($group!=='')
-					$selectsForLimitOffset[]=$group;
-		
-		
+
 		$hasManies = false;
 		foreach($query->with as $with=>$value)
 		{
@@ -854,7 +849,7 @@ class CJoinElement
 				if($rel[$with[0]][0]==='CHasManyRelation'||$rel[$with[0]][0]==='CManyManyRelation')
 					$hasManies = true;
 			}
-			if($level>0)
+			elseif($level>0)
 			{
 				$model = $this->model;
 				$rel = $this->model->relations();
@@ -870,22 +865,31 @@ class CJoinElement
 				$hasManies = false;
 		}
 		
-		if($hasManies)
-		if(empty($selectsForLimitOffset) && ($query->offset>0 || $query->limit>0))
+		if($hasManies && ($query->offset>0 || $query->limit>0))
 		{
-			Yii::trace('Active record "'.get_class($this->model).'" is searched using CDbCriteria with $criteria->together=true and a Pager, but with no $criteria->group set. Add the primary key(s) of '.get_class($this->model).' to $criteria->group, or the pager will not work correctly.','ClassMap.CActiveFinder');
-		}
-		else
-		{
+			$pk = $this->model->tableSchema->primaryKey;
+			$schema = $this->_builder->getSchema();
+			if(is_array($pk))
+			{
+				foreach($pk as $i=>$v)
+				$pk[$i] = $schema->quoteColumnName($this->model->tableAlias.'.'.$v);
+				$group = array(implode(', ', $pk));
+			}
+			else
+			{
+				$group = array($schema->quoteColumnName($this->model->tableAlias.'.'.$this->model->tableSchema->primaryKey));
+			}
+			
 			$originSelects = $query->selects;
 			$originLimit = $query->limit;
 			$originOffset = $query->offset;
-			
+			$selectsForLimitOffset = $group;
 			$selectsForLimitOffset[] = 'COUNT(*) AS count';
 			
 			if($query->offset>0)
 			{
 				$query->selects = $selectsForLimitOffset;
+				$query->groups = $group;
 				$query->limit = $query->offset;
 				$query->offset = 0;
 				$offset = 0;
@@ -898,6 +902,7 @@ class CJoinElement
 			if($query->limit>0)
 			{
 				$query->selects = $selectsForLimitOffset;
+				$query->groups = $group;
 				$limit = 0;
 				$command=$query->createCommand($this->_builder);
 				foreach($command->queryAll() as $row)

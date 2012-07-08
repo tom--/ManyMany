@@ -126,7 +126,8 @@ class Review extends CActiveRecord {
 			't.review',
 			//PK's arent needed in here, they are automatically added.
 		);
-				
+		
+		
 		$criteria->group = 't.reviewer_id, t.song_id';
 		$criteria->together = true;
 		
@@ -183,7 +184,6 @@ class Review extends CActiveRecord {
 		$criteria->compare('genre.id', $this->searchGenre->id, true);
 		$criteria->compare('genre.name', $this->searchGenre->name, true);
 	
-		$criteria->group = 't.reviewer_id, t.song_id';
 		$criteria->together = true;
 	
 		$criteria->compare('t.reviewer_id', $this->reviewer_id, true);
