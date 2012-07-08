@@ -9,15 +9,9 @@ The app has a SongController with two actions:
 * /index.php?r=song/songs
 * /index.php?r=song/reviews
 
-song/songs is working fine. Filtering is implemented but sorting not yet.
+song/reviews is fully implemented with sorting, filtering and gridview paging
 
-song/reviews is implemented and runs but does not do its job. I do not know how to
-make it work. My ideas include:
-
-* Use the Review model in the grid's data provider. But this creates a problem with
-displating genres. Perhaps with a subquery? Maybe use
-[SQActiveRecord](https://github.com/tom--/SQActiveRecord)?
-
-Um. Ok, that's the only idea I have.
-
-Make suggestions!
+**I implemented three ways of loading the Genre data (Has Many related)**
+1. Review::search() - You group the primary/foreign keys of Review, and set together to true. You don't select any data from Genre, because its lazy loaded for each row.
+2. Review::search2() - Same as above, but you select a GROUP_CONCAT of the data from Genre. Most efficient eager loading
+3. Review::search3() - Using classMap you import a custom CActiveFinder that enhances the eager loading magic of Yii. Easiest, but the disadvantage is that is does another 2 COUNT queries for the pager to work.
