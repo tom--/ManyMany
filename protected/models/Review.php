@@ -204,9 +204,9 @@ class Review extends CActiveRecord {
 			    		'asc'=>'song.album',
 			    		'desc'=>'song.album DESC',
 			    	),
-					'genres.name'=>array(
-						'asc'=>'genres.name',
-			        	'desc'=>'genres.name DESC',
+					'genre.name'=>array(
+						'asc'=>'genre.name',
+			        	'desc'=>'genre.name DESC',
 					),
 			        '*',
 				),

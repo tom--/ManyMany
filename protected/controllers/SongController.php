@@ -1,7 +1,7 @@
 <?php
 
 class SongController extends Controller {
-	public $layout = '//layouts/column2';
+	public $layout = '//layouts/column2'; 
 
 	public function filters() {
 		return array(
@@ -62,48 +62,48 @@ class SongController extends Controller {
 				'song' => $song,
 				'genre' => $genre,
 			));
-		else
-			$this->renderPartial('reviewsGrid', array(
+		elseif($_GET['ajax']==='song-grid')
+			$this->renderPartial('_reviewsGrid1', array(
+				'review' => $review,
+				'song' => $song,
+				'genre' => $genre,
+			));
+		elseif($_GET['ajax']==='song-grid-2')
+			$this->renderPartial('_reviewsGrid2', array(
+				'review' => $review,
+				'song' => $song,
+				'genre' => $genre,
+			));
+		elseif($_GET['ajax']==='song-grid-3')
+			$this->renderPartial('_reviewsGrid3', array(
 				'review' => $review,
 				'song' => $song,
 				'genre' => $genre,
 			));
 	}
 
+	/*
 	public function actionAddReviews() {
-		$crit = new CDbCriteria;
-		$crit->order = 'id';
-		$crit->limit = 1;
-		$crit->offset = 0;
-
-		$maxReviewer = Reviewer::model()->count() - 1;
-
-		/** @var $song Song */
-		while ($song = Song::model()->find($crit)) {
-			$crit->offset += 1;
-			if (mt_rand(0, 1) === 0) {
-				continue;
-			}
-			$nreviews = mt_rand(1, 3);
-			$reviewers = array();
-			for ($i = 0; $i < $nreviews; $i += 1) {
-				$review = new Review;
-				$review->song_id = $song->id;
-				$review->review = Lipsum::getLipsum(mt_rand(1, 3));
-				do {
-					$review->reviewer_id = Reviewer::model()->find(array(
-						'order' => 'id',
-						'limit' => 1,
-						'offset' => mt_rand(0, $maxReviewer),
-					))->id;
-				} while (in_array($review->reviewer_id, $reviewers));
-				$reviewers[] = $review->reviewer_id;
-				$review->save();
+		$nSongs = Song::model()->count() - 1;
+		$reviewers = Reviewer::model()->findAll();
+		foreach ($reviewers as $reviewer) {
+			$nreviews = mt_rand(0, 4);
+			if ($nreviews) {
+				for ($i = 0; $i < $nreviews; $i += 1) {
+					$review = new Review;
+					$review->reviewer_id = $reviewer->id;
+					$review->review = Lipsum::getLipsum(mt_rand(1,3));
+					$row = mt_rand(0, $nSongs);
+					$review->song_id = Yii::app()->db->createCommand(
+						"select id from song limit $row, 1"
+					)->queryScalar();
+					$review->save();
+				}
 			}
 		}
-
-		$this->redirect(array('reviews'));
+		$this->redirect(array('admin'));
 	}
+	*/
 
 	/**
 	 * Returns a Song model given its primary key.
