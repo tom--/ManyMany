@@ -4,7 +4,6 @@ ini_set('display_errors',1);
 defined('YII_DEBUG') or define('YII_DEBUG',true);
 defined('YII_TRACE_LEVEL') or define('YII_TRACE_LEVEL',3);
 
-require_once(dirname(__FILE__).DIRECTORY_SEPARATOR.'..'.'/ics/protected/extensions/globalFunctions.php');
 
 // local.php is not version controlled. It has things such as YII_DEBUG
 @include 'local.php';
@@ -20,6 +19,14 @@ class Yii extends YiiBase {
 	public static function app() {
 		return parent::app();
 	}
+}
+
+// Ignore this function for the exercise, its my trace shortcut function. :)
+function tr($tracevar, $description='', $exit=0)
+{
+	Yii::trace(CVarDumper::dumpAsString($tracevar),'<b>DebugTrace: '.$description.'</b>');
+	if($exit)
+		Yii::app()->end();
 }
 
 Yii::$classMap=array(
