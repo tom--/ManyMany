@@ -10,42 +10,48 @@ class SongController extends Controller {
 	}
 
 	/**
+	 * Set up models with CGV search form input.
+	 *
+	 * @param Review|SongGenre $model
+	 */
+	protected function setSearchInputs($model) {
+		$model->unsetAttributes();
+		if (isset($_GET['SongGenre'])) {
+			$model->attributes = $_GET['SongGenre'];
+		}
+
+		$model->searchSong = new Song('search');
+		$model->searchSong->unsetAttributes();
+		if (isset($_GET['Song'])) {
+			$model->searchSong->attributes = $_GET['Song'];
+		}
+
+		$model->searchGenre = new Genre('search');
+		$model->searchGenre->unsetAttributes();
+		if (isset($_GET['Genre'])) {
+			$model->searchGenre->attributes = $_GET['Genre'];
+		}
+	}
+
+	/**
 	 * Grid of all songs including genres column
 	 */
 	public function actionSongs() {
-		$song = new Song('search');
-		$song->unsetAttributes();
-		if (isset($_GET['Song'])) {
-			$song->attributes = $_GET['Song'];
-		}
-		$this->render('grid', array(
-			'song' => $song,
+		$songGenre = new SongGenre('search');
+		$this->setSearchInputs($songGenre);
+		$this->render('songsGrid', array(
+			'songGenre' => $songGenre,
 		));
 	}
 
 	/**
-	 * Grid of all song reviews
+	 * Grid of all song reviews including genres column
 	 */
 	public function actionReviews() {
 		// Filters in the grids involve three model types. Use one of each to hold
 		// filter input values.
 		$review = new Review('search');
-		$review->unsetAttributes();
-		if (isset($_GET['Review'])) {
-			$review->attributes = $_GET['Review'];
-		}
-
-		$review->searchSong = new Song('search');
-		$review->searchSong->unsetAttributes();
-		if (isset($_GET['Song'])) {
-			$review->searchSong->attributes = $_GET['Song'];
-		}
-
-		$review->searchGenre = new Genre('search');
-		$review->searchGenre->unsetAttributes();
-		if (isset($_GET['Genre'])) {
-			$review->searchGenre->attributes = $_GET['Genre'];
-		}
+		$this->setSearchInputs($review);
 
 		if (!isset($_GET['ajax'])) {
 			// Full page request. Use reviewsGrid. Unless case get param is set, it
@@ -62,8 +68,6 @@ class SongController extends Controller {
 		$view = $case ? '_reviewsGrid' : 'reviewsGrid';
 		$this->render($view, array(
 			'review' => $review,
-			'song' => $review->searchSong,
-			'genre' => $review->searchGenre,
 			'case' => $case,
 		));
 	}

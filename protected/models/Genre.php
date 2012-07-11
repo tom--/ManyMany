@@ -41,16 +41,4 @@ class Genre extends CActiveRecord {
 			'name' => 'Genre',
 		);
 	}
-
-	public function search() {
-		$criteria = new CDbCriteria;
-
-		$criteria->compare('id', $this->id, true);
-		$criteria->compare('parent_id', $this->parent_id, true);
-		$criteria->compare('name', $this->name, true);
-
-		return new CActiveDataProvider($this, array(
-			'criteria' => $criteria,
-		));
-	}
 }
