@@ -1,15 +1,7 @@
 <?php
 
 class SongController extends Controller {
-	public $layout = '//layouts/column2'; 
-
-	public function filters() {
-		return array(
-		);
-	}
-
-	public function accessRules() {
-	}
+	public $layout = '//layouts/column2';
 
 	public function actionView($id) {
 		$this->render('view', array(
@@ -17,21 +9,17 @@ class SongController extends Controller {
 		));
 	}
 
-	protected function searchSong($scenario = '') {
-		$song = new Song($scenario);
-		$song->unsetAttributes();
-		if (isset($_GET['Song'])) {
-			$song->attributes = $_GET['Song'];
-		}
-		return $song;
-	}
-
 	/**
 	 * Grid of all songs including genres column
 	 */
 	public function actionSongs() {
+		$song = new Song('search');
+		$song->unsetAttributes();
+		if (isset($_GET['Song'])) {
+			$song->attributes = $_GET['Song'];
+		}
 		$this->render('grid', array(
-			'song' => $this->searchSong('SongGenre'),
+			'song' => $song,
 		));
 	}
 
@@ -39,71 +27,46 @@ class SongController extends Controller {
 	 * Grid of all song reviews
 	 */
 	public function actionReviews() {
+		// Filters in the grids involve three model types. Use one of each to hold
+		// filter input values.
 		$review = new Review('search');
 		$review->unsetAttributes();
-		$song = new Song('search');
-		$song->unsetAttributes();
-		$genre = new Genre('search');
-		$genre->unsetAttributes();
-		
-		if (isset($_GET['Review']))
+		if (isset($_GET['Review'])) {
 			$review->attributes = $_GET['Review'];
-		if (isset($_GET['Song']))
-			$song->attributes = $_GET['Song'];
-		if (isset($_GET['Genre']))
-			$genre->attributes = $_GET['Genre'];
-		
-		$review->searchSong = $song;
-		$review->searchGenre = $genre;
-		
-		if(!isset($_GET['ajax']))
-			$this->render('reviewsGrid', array(
-				'review' => $review,
-				'song' => $song,
-				'genre' => $genre,
-			));
-		elseif($_GET['ajax']==='song-grid')
-			$this->renderPartial('_reviewsGrid1', array(
-				'review' => $review,
-				'song' => $song,
-				'genre' => $genre,
-			));
-		elseif($_GET['ajax']==='song-grid-2')
-			$this->renderPartial('_reviewsGrid2', array(
-				'review' => $review,
-				'song' => $song,
-				'genre' => $genre,
-			));
-		elseif($_GET['ajax']==='song-grid-3')
-			$this->renderPartial('_reviewsGrid3', array(
-				'review' => $review,
-				'song' => $song,
-				'genre' => $genre,
-			));
-	}
-
-	/*
-	public function actionAddReviews() {
-		$nSongs = Song::model()->count() - 1;
-		$reviewers = Reviewer::model()->findAll();
-		foreach ($reviewers as $reviewer) {
-			$nreviews = mt_rand(0, 4);
-			if ($nreviews) {
-				for ($i = 0; $i < $nreviews; $i += 1) {
-					$review = new Review;
-					$review->reviewer_id = $reviewer->id;
-					$review->review = Lipsum::getLipsum(mt_rand(1,3));
-					$row = mt_rand(0, $nSongs);
-					$review->song_id = Yii::app()->db->createCommand(
-						"select id from song limit $row, 1"
-					)->queryScalar();
-					$review->save();
-				}
-			}
 		}
-		$this->redirect(array('admin'));
+
+		$review->searchSong = new Song('search');
+		$review->searchSong->unsetAttributes();
+		if (isset($_GET['Song'])) {
+			$review->searchSong->attributes = $_GET['Song'];
+		}
+
+		$review->searchGenre = new Genre('search');
+		$review->searchGenre->unsetAttributes();
+		if (isset($_GET['Genre'])) {
+			$review->searchGenre->attributes = $_GET['Genre'];
+		}
+
+		if (!isset($_GET['ajax'])) {
+			// Full page request. Use reviewsGrid. Unless case get param is set, it
+			// will have all three grids inside.
+			$view = 'reviewsGrid';
+			$case = isset($_GET['case']) ? $_GET['case'] : null;
+		} else if (substr($_GET['ajax'], 0, -1) === 'song-grid-') {
+			// For a CGridView ajax update request, render the grid partial.
+			$view = '_reviewsGrid';
+			$case = substr($_GET['ajax'], -1);
+		} else {
+			throw new CHttpException(400);
+		}
+		$view = $case ? '_reviewsGrid' : 'reviewsGrid';
+		$this->render($view, array(
+			'review' => $review,
+			'song' => $review->searchSong,
+			'genre' => $review->searchGenre,
+			'case' => $case,
+		));
 	}
-	*/
 
 	/**
 	 * Returns a Song model given its primary key.

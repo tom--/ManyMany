@@ -43,22 +43,8 @@ $columns = array(
 	),
 );
 
-if ($this->action->id === 'reviews') {
-
-	// This is the bit that doesn't work.
-	// To produce a table of song reviews... How??
-	$columns[] = array(
-		'name' => 'review',
-		'filter' => CHtml::activeTextField($song, 'review'),
-	);
-	//$song->criteria->group = 'song_id, reviewer_id';
-	$song->criteria->with = array('song', 'song.hasGenres', 'song.genres');
-} else {
-
-	// For a table of songs, no problems.
-	$song->criteria->group = 'song.id';
-	$song->criteria->with = array('song', 'genre');
-}
+$song->criteria->group = 'song.id';
+$song->criteria->with = array('song', 'genre');
 
 // Run $song's search to get the CActiveDataProvider.
 $dp = $song->search();

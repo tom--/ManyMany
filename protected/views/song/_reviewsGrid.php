@@ -4,11 +4,11 @@
  * @var Song $song
  * @var Genre $genre
  * @var Controller|CController $this
+ * @var $case string 1 2 or 3.
  */
 
 ######################################################################
-//using the search2() method for the 2nd usecase
-
+//using the search3() method for the 3rd usecase
 
 $columns = array(
 	array(
@@ -31,23 +31,25 @@ $columns = array(
 		'filter' => CHtml::activeTextField($song, 'album'),
 	),
 	array(
-		'name' => 'genres.name',
 		'type' => 'raw',
-		'header' => 'allGenres',
-		'value' => 'Help::tags($data->allGenres, "genres", true)',
+		'name' => $case === '3' ? 'genre.name' : 'genres.name',
+		'header' => $case === '2' ? 'allGenres' : 'Genres',
+		'value' => $case === '2'
+			? 'Help::tags($data->allGenres, "genres", true)'
+			: 'Help::tags($data->song->genreNames, "genres", true)',
 		'filter' => CHtml::activeTextField($genre, 'name'),
 	),
 );
 
-
-$dp = $review->search2();
+$dp = $review->search($case);
 $dp->pagination->pageSize = 5;
 $grid = array(
-	'id' => 'song-grid-2',
+	'ajaxUpdate' => false,
+	'id' => 'song-grid-' . $case,
 	'dataProvider' => $dp,
 	'filter' => $review,
 	'columns' => $columns,
 );
 
-echo CHtml::tag('h2', array(), 'Second usecase: Manage ' . $this->action->id);
+echo CHtml::tag('h2', array(), 'Case ' . $case);
 $this->widget('zii.widgets.grid.CGridView', $grid);
