@@ -21,7 +21,7 @@ class Review extends CActiveRecord {
 	public $searchGenre;
 	/**
 	 * @var string The value of a group_concat over this Revew's Song's genre names.
-	 * Set by the data provider configured by $this->search(2), otherwise unused.
+	 * Set by the data provider configured by $this->search('2'), otherwise unused.
 	 */
 	public $allGenres;
 
@@ -93,7 +93,11 @@ class Review extends CActiveRecord {
 			 *  - case 1: it is lazy loaded by Song::genreNames.
 			 *  - case 2: it is loaded using group_concat.
 			 */
-			$criteria->with = array('song', 'song.genres' => array('select' => false));
+			$criteria->with = array(
+				'song',
+				'song.genres' => array('select' => false),
+			);
+
 			if ($case === '2') {
 				// The value allGenres ends up in the DP's models' allGenres properties.
 				// It is only used for getting data, not for filter input.
@@ -117,6 +121,7 @@ class Review extends CActiveRecord {
 		}
 
 		$criteria->together = true;
+
 		$criteria->compare('t.reviewer_id', $this->reviewer_id, true);
 		$criteria->compare('t.song_id', $this->song_id, true);
 		$criteria->compare('t.review', $this->review, true);
