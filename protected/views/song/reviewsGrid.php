@@ -4,26 +4,34 @@
  * @var Song $song
  * @var Genre $genre
  * @var Controller|CController $this
+ * @var string $case
  */
 
+echo CHtml::tag('h1', array(), 'Manage ' . $this->action->id);
 
-Yii::trace('First gridview search() usecase','<b>First gridview search() usecase</b>');
-$this->renderPartial('_reviewsGrid1', array(
-				'review' => $review,
-				'song' => $song,
-				'genre' => $genre,
-));
+if (!$case || $case === '1') {
+	$this->renderPartial('_reviewsGrid', array(
+		'review' => $review,
+		'song' => $song,
+		'genre' => $genre,
+		'case' => '1',
+	));
+}
 
-Yii::trace('Second gridview search2() usecase','<b>Second gridview search2() usecase</b>');
-$this->renderPartial('_reviewsGrid2', array(
-				'review' => $review,
-				'song' => $song,
-				'genre' => $genre,
-));
+if (!$case || $case === '2') {
+	$this->renderPartial('_reviewsGrid', array(
+		'review' => $review,
+		'song' => $song,
+		'genre' => $genre,
+		'case' => '2',
+	));
+}
 
-Yii::trace('Third gridview search3() usecase','<b>Third gridview search3() usecase</b>');
-$this->renderPartial('_reviewsGrid3', array(
-				'review' => $review,
-				'song' => $song,
-				'genre' => $genre,
-));
+if (!$case || $case === '3') {
+	$this->renderPartial('_reviewsGrid', array(
+		'review' => $review,
+		'song' => $song,
+		'genre' => $genre,
+		'case' => '3',
+	));
+}
