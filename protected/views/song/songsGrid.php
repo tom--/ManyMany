@@ -37,7 +37,7 @@ $columns = array(
 	),
 	array(
 		'type' => 'raw',
-		'name' => 'genres',
+		'header' => 'Genres',
 		'value' => 'Help::tags($data->song->genreNames, "genres", true)',
 		'filter' => CHtml::activeTextField($song, 'genre'),
 	),
@@ -47,17 +47,27 @@ if ($this->action->id === 'reviews') {
 
 	// This is the bit that doesn't work.
 	// To produce a table of song reviews... How??
+// 	$columns[] = array(
+// 		'type' => 'raw',
+// 		'name' => 'song.reviews.review',
+// 		'value' => 'tr($data->song->reviews,\'traced review\')',
+// 		'filter' => CHtml::activeTextField($song, 'review'),
+// 	);
 	$columns[] = array(
-		'name' => 'review',
-		'filter' => CHtml::activeTextField($song, 'review'),
+			'type' => 'raw',
+			'name' => 'song.reviews.review',
+			'value' => '$data->song->allReviews',
+			'filter' => CHtml::activeTextField($song, 'review'),
 	);
-	//$song->criteria->group = 'song_id, reviewer_id';
-	$song->criteria->with = array('song', 'song.hasGenres', 'song.genres');
+	$song->criteria->group = 'reviews.song_id, reviews.reviewer_id';
+	$song->criteria->with = array('song', 'song.reviews', 'genre');
+	$song->criteria->together = true;
 } else {
 
 	// For a table of songs, no problems.
 	$song->criteria->group = 'song.id';
 	$song->criteria->with = array('song', 'genre');
+	$song->criteria->together = true;
 }
 
 // Run $song's search to get the CActiveDataProvider.
@@ -68,8 +78,32 @@ $grid = array(
 	'dataProvider' => $dp,
 	'filter' => $song,
 	'columns' => $columns,
-	'ajaxUpdate' => false,
 );
+
+
+//	lazy loading all SongGenre data at once
+$songIds = array();
+foreach ($dp->data as $songGenre) {
+	$songIds[] = $songGenre->song_id;
+}
+$songIds = array_unique($songIds);
+if ($songIds) {
+	$dpSongGenres = SongGenre::model()->with('genre')->findAllByAttributes(
+	array('song_id' => $songIds)
+	);
+}
+
+//	putting the SongGenre's in the right place
+foreach($dp->data as $songGenre)
+{
+	$hasGenres = array();
+	foreach($dpSongGenres as $songGenre2)
+	{
+		if($songGenre2->song_id===$songGenre->song_id)
+			$hasGenres[] = $songGenre2;
+	}
+	$songGenre->song->hasGenres = $hasGenres;
+}
 
 echo CHtml::tag('h1', array(), 'Manage ' . $this->action->id);
 $this->widget('zii.widgets.grid.CGridView', $grid);

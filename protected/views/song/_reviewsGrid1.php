@@ -52,27 +52,28 @@ $grid = array(
 
 //	lazy loading all SongGenre data at once
 $songIds = array();
-foreach ($dp->data as $songGenre) {
-	$songIds[] = $songGenre->song_id;
+foreach ($dp->data as $review) {
+	$songIds[] = $review->song_id;
 }
 $songIds = array_unique($songIds);
 if ($songIds) {
 	$dpSongGenres = SongGenre::model()->with('genre')->findAllByAttributes(
-	array('song_id' => $songIds)
+		array('song_id' => $songIds)
 	);
 }
 
-//	puting the SongGenre's in the right place
+//	putting the SongGenre's in the right place
 foreach($dp->data as $review)
 {
 	$hasGenres = array();
 	foreach($dpSongGenres as $songGenre)
 	{
-		if($songGenre->song_id===$review->song->id)
-		$hasGenres[] = $songGenre;
+		if($songGenre->song_id===$review->song_id)
+			$hasGenres[] = $songGenre;
 	}
 	$review->song->hasGenres = $hasGenres;
 }
+
 
 echo CHtml::tag('h2', array(), 'First usecase: Manage ' . $this->action->id);
 $this->widget('zii.widgets.grid.CGridView', $grid);
