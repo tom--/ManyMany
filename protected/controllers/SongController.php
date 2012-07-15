@@ -56,20 +56,19 @@ class SongController extends Controller {
 		if (!isset($_GET['ajax'])) {
 			// Full page request. Use reviewsGrid. Unless case get param is set, it
 			// will have all three grids inside.
-			$view = 'reviewsGrid';
-			$case = isset($_GET['case']) ? $_GET['case'] : null;
-		} else if (substr($_GET['ajax'], 0, -1) === 'song-grid-') {
+			$this->render('reviewsGrid', array(
+				'review' => $review,
+				'case' => isset($_GET['case']) ? $_GET['case'] : null,
+			));
+		} elseif (substr($_GET['ajax'], 0, -1) === 'review-grid-') {
 			// For a CGridView ajax update request, render the grid partial.
-			$view = '_reviewsGrid';
-			$case = substr($_GET['ajax'], -1);
+			$this->renderPartial('_reviewsGrid', array(
+				'review' => $review,
+				'case' => substr($_GET['ajax'], -1),
+			));
 		} else {
 			throw new CHttpException(400);
 		}
-		$view = $case ? '_reviewsGrid' : 'reviewsGrid';
-		$this->render($view, array(
-			'review' => $review,
-			'case' => $case,
-		));
 	}
 
 	/**
