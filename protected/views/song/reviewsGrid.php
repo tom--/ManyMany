@@ -6,12 +6,12 @@
  */
 
 echo CHtml::tag('h1', array(), 'Manage ' . $this->action->id);
-
-foreach (array('1', '2', '3') as $case) {
-	if (!$case || $case === $case) {
+var_export($case);
+foreach (array('1', '2', '3') as $i) {
+	if (!$case || $case === $i) {
 		$this->renderPartial('_reviewsGrid', array(
 			'review' => $review,
-			'case' => $case,
+			'case' => $i,
 		));
 	}
 }

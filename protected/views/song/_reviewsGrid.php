@@ -36,9 +36,9 @@ $columns = array(
 );
 
 $dp = $review->search($case);
-$dp->pagination->pageSize = 5;
+$dp->pagination->pageSize = 25;
 $grid = array(
-	'id' => 'song-grid-' . $case,
+	'id' => 'review-grid-' . $case,
 	'dataProvider' => $dp,
 	'filter' => $review,
 	'columns' => $columns,
@@ -46,6 +46,34 @@ $grid = array(
 if (isset($_GET['case'])) {
 	// Disablign ajaxUpdate allows viewing query logs in the web log route
 	$grid['ajaxUpdate'] = false;
+}
+
+if ($case === '1') {
+	// Load all SongGenre data before the data provider does.
+	// Get the song_ids of all the songs in this page of the grid.
+	$songIds = array();
+	foreach ($dp->data as $review) {
+		$songIds[] = $review->song_id;
+	}
+	$songIds = array_unique($songIds);
+	if ($songIds) {
+		// Load all the SongGenres related to Songs in this page of the grid
+		$dpSongGenres = SongGenre::model()->with('genre')->findAllByAttributes(
+			array('song_id' => $songIds)
+		);
+		if ($dpSongGenres) {
+			// Put the SongGenre's into the data provider
+			foreach ($dp->data as $review) {
+				$hasGenres = array();
+				foreach ($dpSongGenres as $songGenre) {
+					if ($songGenre->song_id === $review->song_id) {
+						$hasGenres[] = $songGenre;
+					}
+				}
+				$review->song->hasGenres = $hasGenres;
+			}
+		}
+	}
 }
 
 echo CHtml::tag('h2', array(), 'Case ' . $case);

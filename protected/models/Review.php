@@ -86,7 +86,7 @@ class Review extends CActiveRecord {
 	public function search($case = '1') {
 		$criteria = new CDbCriteria;
 
-		if ($case !== '3') {
+		if ($case === '1' || $case === '2') {
 			/*
 			 * Select all data from song because it is a has_one relation.
 			 * Do not select any data from genres because:
@@ -94,6 +94,7 @@ class Review extends CActiveRecord {
 			 *  - case 2: it is loaded using group_concat.
 			 */
 			$criteria->with = array(
+				'reviewer',
 				'song',
 				'song.genres' => array('select' => false),
 			);
@@ -112,10 +113,15 @@ class Review extends CActiveRecord {
 
 			$criteria->compare('genres.id', $this->searchGenre->id, true);
 			$criteria->compare('genres.name', $this->searchGenre->name, true);
-		} else {
+		} elseif ($case === '3') {
 			// If eager Loading and someone searched for a genre, only THAT genre is shown.
 			// If the Song has other Genres, they are not shown: you compare to genre, not genres.
-			$criteria->with = array('song', 'song.hasGenres', 'song.hasGenres.genre');
+			$criteria->with = array(
+				'reviewer',
+				'song',
+				'song.hasGenres',
+				'song.hasGenres.genre',
+			);
 			$criteria->compare('genre.id', $this->searchGenre->id, true);
 			$criteria->compare('genre.name', $this->searchGenre->name, true);
 		}
