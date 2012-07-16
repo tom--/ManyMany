@@ -25,13 +25,40 @@ class SongController extends Controller {
 		}
 		return $song;
 	}
+	
+	/**
+	* Set up models with CGV search form input.
+	*
+	* @param CActiveRecord $model
+	*/
+	protected function setSearchInputs($model) {
+		foreach (array('Reviewer', 'Review', 'Song', 'SongGenre', 'Genre') as $class) {
+			if (get_class($model) === $class) {
+				$model->unsetAttributes();
+				if (isset($_GET[$class])) {
+					$model->attributes = $_GET[$class];
+				}
+			} else {
+				$prop = 'search' . $class;
+				if (property_exists($model, $prop)) {
+					$model->$prop = new $class('search');
+					$model->$prop->unsetAttributes();
+					if (isset($_GET[$class])) {
+						$model->$prop->attributes = $_GET[$class];
+					}
+				}
+			}
+		}
+	}
 
 	/**
 	 * Grid of all songs including genres column
 	 */
 	public function actionSongs() {
-		$this->render('grid', array(
-			'song' => $this->searchSong('SongGenre'),
+		$song = new Song('search');
+		$this->setSearchInputs($song);
+		$this->render('songsGrid', array(
+			'song' => $song,
 		));
 	}
 

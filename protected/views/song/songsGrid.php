@@ -1,109 +1,92 @@
 <?php
 /**
  * @var Song $song
- * @var Controller|CController $this
+ * @var Controller $this
  */
 
-$song->criteria = new CDbCriteria;
-
-/*
- * Now take care here. This is confusing.
- *
- * The only model we have in the local context is $song. It is used for filter inputs,
- * to house a CDbCriteria object for use in its search() method.
- *
- * But the method $song->search() returns a CADP for a SongGenre model, not a Song
- * model, if the scenario is set to 'SongGenre'. Strange but dig in for the reasons.
- *
- * So the names in CDataColumns need to be attributes of the data provider's SongGenre
- * model while the names of the filter inputs are properties/attributes of $song.
- */
 $columns = array(
 	array(
 		'header' => 'Num',
 		'value' => Help::$gridRowExp,
 	),
 	array(
-		'name' => 'song.name',
+		'name' => 'name',
 		'filter' => CHtml::activeTextField($song, 'name'),
 	),
 	array(
-		'name' => 'song.artist',
+		'name' => 'artist',
 		'filter' => CHtml::activeTextField($song, 'artist'),
 	),
 	array(
-		'name' => 'song.album',
+		'name' => 'album',
 		'filter' => CHtml::activeTextField($song, 'album'),
 	),
 	array(
 		'type' => 'raw',
+		'name' => 'genres.name',
 		'header' => 'Genres',
-		'value' => 'Help::tags($data->song->genreNames, "genres", true)',
-		'filter' => CHtml::activeTextField($song, 'genre'),
+		'value' => 'Help::tags($data->genreNames, "genres", true)',
+		'filter' => CHtml::activeTextField($song->searchGenre, 'name'),
 	),
 );
 
-if ($this->action->id === 'reviews') {
-
-	// This is the bit that doesn't work.
-	// To produce a table of song reviews... How??
-// 	$columns[] = array(
-// 		'type' => 'raw',
-// 		'name' => 'song.reviews.review',
-// 		'value' => 'tr($data->song->reviews,\'traced review\')',
-// 		'filter' => CHtml::activeTextField($song, 'review'),
-// 	);
-	$columns[] = array(
-			'type' => 'raw',
-			'name' => 'song.reviews.review',
-			'value' => '$data->song->allReviews',
-			'filter' => CHtml::activeTextField($song, 'review'),
-	);
-	$song->criteria->group = 'reviews.song_id, reviews.reviewer_id';
-	$song->criteria->with = array('song', 'song.reviews', 'genre');
-	$song->criteria->together = true;
-} else {
-
-	// For a table of songs, no problems.
-	$song->criteria->group = 'song.id';
-	$song->criteria->with = array('song', 'genre');
-	$song->criteria->together = true;
-}
-
-// Run $song's search to get the CActiveDataProvider.
 $dp = $song->search();
-$dp->pagination->pageSize = 50;
+$dp->pagination->pageSize = 10;
 $grid = array(
+	'ajaxUpdate' => false,
 	'id' => 'song-grid',
 	'dataProvider' => $dp,
 	'filter' => $song,
 	'columns' => $columns,
 );
 
+// Load all SongGenre data before the data provider does.
+// Get the song_ids of all the songs in this page of the grid.
+//
+// Why this chunk of code doesn't belong in the model's search method:
+// $song->search(); does not get any data, it returns a data provider object, which
+// is a configuration for getting data. The data isn't gotten until we use the
+// data provider for providing data.
+//
+// Normally, it is a controller's job to use a model class to fetch data from a DB.
+// The model provides the tools but it doesn't choose which rows to fetch and fetch
+// them.
+//
+// What's happening in the following is: use the model classes to fetch a bunch of
+// rows into models in the local variable $dpSongGenres. Then put those models into a
+// differently structured local variable $dp, i.e. the CActiveDataProvider that the
+// CGridView is going to use. That's classic controller business.
+//
+// But, if we use the Yii convention of configuring CGVs and CADPs in views, it
+// can't go in the controller and has to fit here.
+//
+// So if this code should not be here, it probably belongs to the CADP. But how to
+// put it there?
 
-//	lazy loading all SongGenre data at once
+/*
 $songIds = array();
-foreach ($dp->data as $songGenre) {
-	$songIds[] = $songGenre->song_id;
+foreach ($dp->data as $song) {
+	$songIds[] = $song->id;
 }
 $songIds = array_unique($songIds);
 if ($songIds) {
+	// Load all the SongGenres related to Songs in this page of the grid
 	$dpSongGenres = SongGenre::model()->with('genre')->findAllByAttributes(
-	array('song_id' => $songIds)
+		array('song_id' => $songIds)
 	);
-}
-
-//	putting the SongGenre's in the right place
-foreach($dp->data as $songGenre)
-{
-	$hasGenres = array();
-	foreach($dpSongGenres as $songGenre2)
-	{
-		if($songGenre2->song_id===$songGenre->song_id)
-			$hasGenres[] = $songGenre2;
+	// Put the SongGenre's into the data provider
+	if ($dpSongGenres) {
+		foreach ($dpSongGenres as $i => $songGenre) {
+			$theSongGenres[$songGenre->song_id][] = $songGenre;
+		}
+		foreach ($dp->data as $song) {
+			if (isset($theSongGenres[$song->id])) {
+				$song->hasGenres = $theSongGenres[$song->id];
+			}
+		}
 	}
-	$songGenre->song->hasGenres = $hasGenres;
-}
+} */
 
-echo CHtml::tag('h1', array(), 'Manage ' . $this->action->id);
+
+echo CHtml::tag('h1', array(), 'Songs');
 $this->widget('zii.widgets.grid.CGridView', $grid);
