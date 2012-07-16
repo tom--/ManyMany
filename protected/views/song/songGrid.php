@@ -98,5 +98,6 @@ if ($songIds) {
 	}
 }
 
+
 echo CHtml::tag('h1', array(), 'Songs');
 $this->widget('zii.widgets.grid.CGridView', $grid);
