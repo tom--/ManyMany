@@ -87,6 +87,7 @@ if ($songIds) {
 	);
 	// Put the SongGenre's into the data provider
 	if ($dpSongGenres) {
+		$theSongGenres = array();
 		foreach ($dpSongGenres as $i => $songGenre) {
 			$theSongGenres[$songGenre->song_id][] = $songGenre;
 		}
