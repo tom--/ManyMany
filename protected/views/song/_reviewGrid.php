@@ -58,19 +58,19 @@ if ($case === '1') {
 	$songIds = array_unique($songIds);
 	if ($songIds) {
 		// Load all the SongGenres related to Songs in this page of the grid
+		/** @var $dpSongGenres SongGenre[] */
 		$dpSongGenres = SongGenre::model()->with('genre')->findAllByAttributes(
 			array('song_id' => $songIds)
 		);
+		// Put the SongGenre's into the data provider
 		if ($dpSongGenres) {
-			// Put the SongGenre's into the data provider
+			foreach ($dpSongGenres as $i => $songGenre) {
+				$theSongGenres[$songGenre->song_id][] = $songGenre;
+			}
 			foreach ($dp->data as $review) {
-				$hasGenres = array();
-				foreach ($dpSongGenres as $songGenre) {
-					if ($songGenre->song_id === $review->song_id) {
-						$hasGenres[] = $songGenre;
-					}
+				if (isset($theSongGenres[$review->song_id])) {
+					$review->song->hasGenres = $theSongGenres[$review->song_id];
 				}
-				$review->song->hasGenres = $hasGenres;
 			}
 		}
 	}
