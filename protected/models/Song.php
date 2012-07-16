@@ -17,6 +17,11 @@
  * @property array $genreNames Two arrays with keys 'pri' and 'sec', each a list of genre names
  */
 class Song extends CActiveRecord {
+	/**
+	 * @var Genre Used for CGV filter form inputs.
+	 */
+	public $searchGenre;
+
 	private $_genreNames;
 
 	public static function model($className = __CLASS__) {
@@ -63,5 +68,60 @@ class Song extends CActiveRecord {
 			'artist' => 'Artist',
 			'album' => 'Album',
 		);
+	}
+
+	public function search() {
+		$criteria = new CDbCriteria;
+
+		$criteria->with = array('genres');
+
+		$criteria->group = 't.id';
+
+		$criteria->compare('t.name', $this->name, true);
+		$criteria->compare('t.artist', $this->artist, true);
+		$criteria->compare('t.album', $this->album, true);
+
+		if ($this->searchGenre->name) {
+			preg_match_all('/\w[\w~^_@?+><+*&%$#!-]*/', $this->searchGenre->name, $genres);
+			$genres = $genres[0];
+			if ($genres) {
+				$genre = array_shift($genres);
+				$criteria->compare('genres.name', $genre, true);
+				if ($genres) {
+					foreach ($genres as $genre) {
+						$criteria->compare('genres.name', $genre, true, 'or');
+					}
+				}
+			}
+		}
+
+		$criteria->together = true;
+
+		$sort = new CSort;
+		$sort->defaultOrder = array('song_id' => CSort::SORT_ASC);
+		$sort->attributes = array(
+			'name' => array(
+				'asc' => 't.name',
+				'desc' => 't.name DESC',
+			),
+			'artist' => array(
+				'asc' => 't.artist',
+				'desc' => 't.artist DESC',
+			),
+			'album' => array(
+				'asc' => 't.album',
+				'desc' => 't.album DESC',
+			),
+			'genres.name' => array(
+				'asc' => 'genres.name',
+				'desc' => 'genres.name DESC',
+			),
+			'*',
+		);
+
+		return new CActiveDataProvider($this, array(
+			'criteria' => $criteria,
+			'sort' => $sort,
+		));
 	}
 }

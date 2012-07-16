@@ -12,24 +12,25 @@ class SongController extends Controller {
 	/**
 	 * Set up models with CGV search form input.
 	 *
-	 * @param Review|SongGenre $model
+	 * @param CActiveRecord $model
 	 */
 	protected function setSearchInputs($model) {
-		$model->unsetAttributes();
-		if (isset($_GET['SongGenre'])) {
-			$model->attributes = $_GET['SongGenre'];
-		}
-
-		$model->searchSong = new Song('search');
-		$model->searchSong->unsetAttributes();
-		if (isset($_GET['Song'])) {
-			$model->searchSong->attributes = $_GET['Song'];
-		}
-
-		$model->searchGenre = new Genre('search');
-		$model->searchGenre->unsetAttributes();
-		if (isset($_GET['Genre'])) {
-			$model->searchGenre->attributes = $_GET['Genre'];
+		foreach (array('Reviewer', 'Review', 'Song', 'SongGenre', 'Genre') as $class) {
+			if (get_class($model) === $class) {
+				$model->unsetAttributes();
+				if (isset($_GET[$class])) {
+					$model->attributes = $_GET[$class];
+				}
+			} else {
+				$prop = 'search' . $class;
+				if (property_exists($model, $prop)) {
+					$model->$prop = new $class('search');
+					$model->$prop->unsetAttributes();
+					if (isset($_GET[$class])) {
+						$model->$prop->attributes = $_GET[$class];
+					}
+				}
+			}
 		}
 	}
 
@@ -37,10 +38,10 @@ class SongController extends Controller {
 	 * Grid of all songs including genres column
 	 */
 	public function actionSongs() {
-		$songGenre = new SongGenre('search');
-		$this->setSearchInputs($songGenre);
-		$this->render('songsGrid', array(
-			'songGenre' => $songGenre,
+		$song = new Song('search');
+		$this->setSearchInputs($song);
+		$this->render('songGrid', array(
+			'song' => $song,
 		));
 	}
 
@@ -56,13 +57,13 @@ class SongController extends Controller {
 		if (!isset($_GET['ajax'])) {
 			// Full page request. Use reviewsGrid. Unless case get param is set, it
 			// will have all three grids inside.
-			$this->render('reviewsGrid', array(
+			$this->render('reviewGrid', array(
 				'review' => $review,
 				'case' => isset($_GET['case']) ? $_GET['case'] : null,
 			));
 		} elseif (substr($_GET['ajax'], 0, -1) === 'review-grid-') {
 			// For a CGridView ajax update request, render the grid partial.
-			$this->renderPartial('_reviewsGrid', array(
+			$this->renderPartial('_reviewGrid', array(
 				'review' => $review,
 				'case' => substr($_GET['ajax'], -1),
 			));
