@@ -1,7 +1,7 @@
 <?php
 
 class SongController extends Controller {
-	public $layout = '//layouts/column2'; 
+	public $layout = '//layouts/column2';
 
 	public function filters() {
 		return array(
@@ -25,12 +25,12 @@ class SongController extends Controller {
 		}
 		return $song;
 	}
-	
+
 	/**
-	* Set up models with CGV search form input.
-	*
-	* @param CActiveRecord $model
-	*/
+	 * Set up models with CGV search form input.
+	 *
+	 * @param CActiveRecord $model
+	 */
 	protected function setSearchInputs($model) {
 		foreach (array('Reviewer', 'Review', 'Song', 'SongGenre', 'Genre') as $class) {
 			if (get_class($model) === $class) {
@@ -72,36 +72,36 @@ class SongController extends Controller {
 		$song->unsetAttributes();
 		$genre = new Genre('search');
 		$genre->unsetAttributes();
-		
+
 		if (isset($_GET['Review']))
 			$review->attributes = $_GET['Review'];
 		if (isset($_GET['Song']))
 			$song->attributes = $_GET['Song'];
 		if (isset($_GET['Genre']))
 			$genre->attributes = $_GET['Genre'];
-		
+
 		$review->searchSong = $song;
 		$review->searchGenre = $genre;
-		
-		if(!isset($_GET['ajax']))
+
+		if (!isset($_GET['ajax']))
 			$this->render('reviewsGrid', array(
 				'review' => $review,
 				'song' => $song,
 				'genre' => $genre,
 			));
-		elseif($_GET['ajax']==='song-grid')
+		elseif ($_GET['ajax'] === 'song-grid')
 			$this->renderPartial('_reviewsGrid1', array(
 				'review' => $review,
 				'song' => $song,
 				'genre' => $genre,
 			));
-		elseif($_GET['ajax']==='song-grid-2')
+		elseif ($_GET['ajax'] === 'song-grid-2')
 			$this->renderPartial('_reviewsGrid2', array(
 				'review' => $review,
 				'song' => $song,
 				'genre' => $genre,
 			));
-		elseif($_GET['ajax']==='song-grid-3')
+		elseif ($_GET['ajax'] === 'song-grid-3')
 			$this->renderPartial('_reviewsGrid3', array(
 				'review' => $review,
 				'song' => $song,
