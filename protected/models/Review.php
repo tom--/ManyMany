@@ -43,6 +43,10 @@ class Review extends CActiveRecord {
 		return array(
 			'song' => array(self::BELONGS_TO, 'Song', 'song_id'),
 			'reviewer' => array(self::BELONGS_TO, 'Reviewer', 'reviewer_id'),
+			'comments' => array(self::HAS_MANY, 'Review', array(
+				'review_reviewer_id' => 'reviewer_id',
+				'review_song_id' => 'song_id',
+			)),
 		);
 	}
 

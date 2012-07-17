@@ -3,6 +3,11 @@
 class SongController extends Controller {
 	public $layout = '//layouts/column2';
 
+	public function actionTesting() {
+		$this->render('testing', array(
+		));
+	}
+
 	public function actionView($id) {
 		$this->render('view', array(
 			'model' => $this->loadModel($id),
