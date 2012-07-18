@@ -3,27 +3,15 @@
 class SongController extends Controller {
 	public $layout = '//layouts/column2';
 
-	public function filters() {
-		return array(
-		);
-	}
-
-	public function accessRules() {
+	public function actionTesting() {
+		$this->render('testing', array(
+		));
 	}
 
 	public function actionView($id) {
 		$this->render('view', array(
 			'model' => $this->loadModel($id),
 		));
-	}
-
-	protected function searchSong($scenario = '') {
-		$song = new Song($scenario);
-		$song->unsetAttributes();
-		if (isset($_GET['Song'])) {
-			$song->attributes = $_GET['Song'];
-		}
-		return $song;
 	}
 
 	/**
@@ -57,80 +45,37 @@ class SongController extends Controller {
 	public function actionSongs() {
 		$song = new Song('search');
 		$this->setSearchInputs($song);
-		$this->render('songsGrid', array(
+		$this->render('songGrid', array(
 			'song' => $song,
 		));
 	}
 
 	/**
-	 * Grid of all song reviews
+	 * Grid of all song reviews including genres column
 	 */
 	public function actionReviews() {
+		// Filters in the grids involve three model types. Use one of each to hold
+		// filter input values.
 		$review = new Review('search');
-		$review->unsetAttributes();
-		$song = new Song('search');
-		$song->unsetAttributes();
-		$genre = new Genre('search');
-		$genre->unsetAttributes();
+		$this->setSearchInputs($review);
 
-		if (isset($_GET['Review']))
-			$review->attributes = $_GET['Review'];
-		if (isset($_GET['Song']))
-			$song->attributes = $_GET['Song'];
-		if (isset($_GET['Genre']))
-			$genre->attributes = $_GET['Genre'];
-
-		$review->searchSong = $song;
-		$review->searchGenre = $genre;
-
-		if (!isset($_GET['ajax']))
-			$this->render('reviewsGrid', array(
+		if (!isset($_GET['ajax'])) {
+			// Full page request. Use reviewsGrid. Unless case get param is set, it
+			// will have all three grids inside.
+			$this->render('reviewGrid', array(
 				'review' => $review,
-				'song' => $song,
-				'genre' => $genre,
+				'case' => isset($_GET['case']) ? $_GET['case'] : null,
 			));
-		elseif ($_GET['ajax'] === 'song-grid')
-			$this->renderPartial('_reviewsGrid1', array(
+		} elseif (substr($_GET['ajax'], 0, -1) === 'review-grid-') {
+			// For a CGridView ajax update request, render the grid partial.
+			$this->renderPartial('_reviewGrid', array(
 				'review' => $review,
-				'song' => $song,
-				'genre' => $genre,
+				'case' => substr($_GET['ajax'], -1),
 			));
-		elseif ($_GET['ajax'] === 'song-grid-2')
-			$this->renderPartial('_reviewsGrid2', array(
-				'review' => $review,
-				'song' => $song,
-				'genre' => $genre,
-			));
-		elseif ($_GET['ajax'] === 'song-grid-3')
-			$this->renderPartial('_reviewsGrid3', array(
-				'review' => $review,
-				'song' => $song,
-				'genre' => $genre,
-			));
-	}
-
-	/*
-	public function actionAddReviews() {
-		$nSongs = Song::model()->count() - 1;
-		$reviewers = Reviewer::model()->findAll();
-		foreach ($reviewers as $reviewer) {
-			$nreviews = mt_rand(0, 4);
-			if ($nreviews) {
-				for ($i = 0; $i < $nreviews; $i += 1) {
-					$review = new Review;
-					$review->reviewer_id = $reviewer->id;
-					$review->review = Lipsum::getLipsum(mt_rand(1,3));
-					$row = mt_rand(0, $nSongs);
-					$review->song_id = Yii::app()->db->createCommand(
-						"select id from song limit $row, 1"
-					)->queryScalar();
-					$review->save();
-				}
-			}
+		} else {
+			throw new CHttpException(400);
 		}
-		$this->redirect(array('admin'));
 	}
-	*/
 
 	/**
 	 * Returns a Song model given its primary key.

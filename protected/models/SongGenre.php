@@ -13,6 +13,15 @@
  * @property Reviewer[] $reviewers
  */
 class SongGenre extends CActiveRecord {
+	/**
+	 * @var Song Used for CGV filter form inputs.
+	 */
+	public $searchSong;
+	/**
+	 * @var Genre Used for CGV filter form inputs.
+	 */
+	public $searchGenre;
+
 	public static function model($className = __CLASS__) {
 		return parent::model($className);
 	}
@@ -22,15 +31,19 @@ class SongGenre extends CActiveRecord {
 	}
 
 	public function rules() {
-		return array();
+		return array(
+			array('song_id, genre_id, is_primary', 'safe', 'on' => 'search'),
+		);
 	}
 
 	public function relations() {
 		return array(
 			'genre' => array(self::BELONGS_TO, 'Genre', 'genre_id'),
 			'song' => array(self::BELONGS_TO, 'Song', 'song_id'),
-			'reviews' => array(self::HAS_MANY, 'Review', 'song_id', 'through' => 'song'),
-			'reviewers' => array(self::HAS_MANY, 'Reviewer', 'reviewer_id', 'through' => 'review'),
+			'reviews' => array(self::HAS_MANY, 'Review', 'song_id',
+				'through' => 'song'),
+			'reviewers' => array(self::HAS_MANY, 'Reviewer', 'reviewer_id',
+				'through' => 'review'),
 		);
 	}
 
@@ -40,17 +53,5 @@ class SongGenre extends CActiveRecord {
 			'genre_id' => 'Genre ID',
 			'is_primary' => 'Primary',
 		);
-	}
-
-	public function search() {
-		$criteria = new CDbCriteria();
-
-		$criteria->compare('song_id', $this->song_id, true);
-		$criteria->compare('genre_id', $this->genre_id, true);
-		$criteria->compare('is_primary', $this->is_primary);
-
-		return new CActiveDataProvider($this, array(
-			'criteria' => $criteria,
-		));
 	}
 }

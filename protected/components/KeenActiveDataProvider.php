@@ -18,6 +18,7 @@ class KeenActiveDataProvider extends CActiveDataProvider {
 	 * @var array list of relation names
 	 */
 	public $withKeenLoading = array();
+	private $_keenKeys = array();
 
 	/**
 	 * Fetches the data from the persistent data storage.
@@ -32,49 +33,82 @@ class KeenActiveDataProvider extends CActiveDataProvider {
 		return $data;
 	}
 
+	private function _loadKey($attr) {
+		if (!isset($this->_keenKeys[$attr]))
+			$this->_keenKeys[$attr] = array();
+		foreach ($this->getData() as $i => $data) {
+			$this->_keenKeys[$attr] = $data->$attr;
+		}
+	}
+
+	private function _loadKeys($attrs) {
+		if (is_array($attrs)) {
+			if ($attrs) {
+				foreach ($attrs as $attr) {
+					$this->_loadKey($attr);
+				}
+			}
+		} elseif ($attrs) {
+			$this->_loadKey($attrs);
+		}
+	}
+
 	/**
 	 * Loads additional related data in bulk, instead of each model lazy loading its related data
 	 */
 	protected function afterFetch($data) {
-		$pks = array();
-		foreach ($data as $dataItem) {
-			$pks[] = $dataItem->{$this->model->tableSchema->primaryKey};
-		}
-		$pks = array_unique($pks);
-		$relations = $this->model->relations();
-		if ($pks) {
-			foreach ($this->withKeenLoading as $relationName) {
-				//if using hierarchical relation names, load the deep models using with()
-				if (strpos($relationName, '.') === false) {
-					$with = '';
-				} else {
-					$with = explode('.', $relationName);
-					$relationName = array_shift($with);
-				}
-
-				// Load all the related data
-				$relatedModels = CActiveRecord::model($relations[$relationName][1])
-					->findAllByAttributes(
-						array($relations[$relationName][2] => $pks),
-						array('with' => $with)
-					);
-				// put the related data in the dataprovider
-				if ($relatedModels) {
-					$newRelatedData = array();
-					foreach ($relatedModels as $i => $relatedModel) {
-						$newRelatedData[$relatedModel->{$relations[$relationName][2]}][] =
-							$relatedModel;
+		foreach ($this->withKeenLoading as $relationName) {
+			// if using hierarchical relation names, load the deep models using with()
+			if (strpos($relationName, '.') === false) {
+				$with = '';
+			} else {
+				$with = explode('.', $relationName);
+				$relationName = array_shift($with);
+			}
+			$relation = $this->model->metaData->relations[$relationName];
+			$fk = $relation->foreignKey;
+			$keyAttrs = array();
+			if ($relation instanceof CBelongsToRelation) {
+				if (is_array($relation->foreignKey)) {
+					foreach ($relation->foreignKey as $k => $v) {
+						$keyAttrs[] = is_string($k) ? $k : $v;
 					}
-					foreach ($data as $dataItem) {
-						if (isset($newRelatedData[$dataItem->{$this->model->tableSchema->primaryKey}])) {
-							$dataItem->$relationName =
-								$newRelatedData[$dataItem->{$this->model->tableSchema->primaryKey}];
-						}
+				} else {
+					$keyAttrs[] = $relation->foreignKey;
+				}
+			} else {
+				if (is_array($relation->foreignKey)) {
+					foreach ($relation->foreignKey as $k => $v) {
+						$keyAttrs[] = is_string($k) ? $v : $this->model->primaryKey;
+					}
+				} else {
+					$keyAttrs[] = $this->model->primaryKey;
+				}
+			}
+			$this->_loadKeys($keyAttrs);
+
+			// NIOT DONE FROM HERE DOWN
+
+			// Load all the related data
+			$relatedModels = CActiveRecord::model($relations[$relationName][1])
+				->findAllByAttributes(
+				array($relations[$relationName][2] => $pks),
+				array('with' => $with)
+			);
+			// put the related data in the dataprovider
+			if ($relatedModels) {
+				$newRelatedData = array();
+				foreach ($relatedModels as $i => $relatedModel) {
+					$newRelatedData[$relatedModel->{$relations[$relationName][2]}][] =
+						$relatedModel;
+				}
+				foreach ($data as $dataItem) {
+					if (isset($newRelatedData[$dataItem->{$this->model->tableSchema->primaryKey}])) {
+						$dataItem->$relationName =
+							$newRelatedData[$dataItem->{$this->model->tableSchema->primaryKey}];
 					}
 				}
 			}
-
-
 		}
 
 		return $data;
