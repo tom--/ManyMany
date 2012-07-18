@@ -66,25 +66,38 @@ class KeenActiveDataProvider extends CActiveDataProvider {
 				$relationName = array_shift($with);
 			}
 			$relation = $this->model->metaData->relations[$relationName];
-			$fk = $relation->foreignKey;
-			$keyAttrs = array();
+			Yii::trace(CVarDumper::dumpAsString($relation), '<b>DebugTrace: $relation</b>');
+			$owningAttrs = array();
+			$foreignAttrs = array();
 			if ($relation instanceof CBelongsToRelation) {
 				if (is_array($relation->foreignKey)) {
 					foreach ($relation->foreignKey as $k => $v) {
-						$keyAttrs[] = is_string($k) ? $k : $v;
+						$owningAttrs[] = is_string($k) ? $k : $v;
+						$foreignAttrs[] = CActiveRecord::model($relation->className)->tableSchema->primaryKey;
 					}
 				} else {
-					$keyAttrs[] = $relation->foreignKey;
+					$owningAttrs[] = $relation->foreignKey;
+					$foreignAttrs[] =
+						CActiveRecord::model($relation->className)->tableSchema->primaryKey;
 				}
 			} else {
 				if (is_array($relation->foreignKey)) {
 					foreach ($relation->foreignKey as $k => $v) {
-						$keyAttrs[] = is_string($k) ? $v : $this->model->primaryKey;
+						$owningAttrs[] =
+							is_string($k) ? $k : $this->model->tableSchema->primaryKey;
+						$foreignAttrs[] = $v;
 					}
 				} else {
-					$keyAttrs[] = $this->model->primaryKey;
+					$owningAttrs[] = $this->model->tableSchema->primaryKey;
+					$foreignAttrs[] = $relation->foreignKey;
 				}
 			}
+			Yii::trace(CVarDumper::dumpAsString($owningAttrs),
+				'<b>DebugTrace: $owningAttrs</b>');
+			Yii::trace(CVarDumper::dumpAsString($foreignAttrs),
+				'<b>DebugTrace: $foreignAttrs</b>');
+			Yii::app()->end();
+
 			$this->_loadKeys($keyAttrs);
 
 			// NIOT DONE FROM HERE DOWN
