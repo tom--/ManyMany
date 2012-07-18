@@ -67,32 +67,37 @@ class KeenActiveDataProvider extends CActiveDataProvider {
 			}
 			$relation = $this->model->metaData->relations[$relationName];
 			Yii::trace(CVarDumper::dumpAsString($relation),'<b>DebugTrace: $relation</b>');
+			Yii::trace(CVarDumper::dumpAsString($this->model->metaData->tableSchema->primaryKey),'<b>DebugTrace: primaryKey</b>');
 			$fk = $relation->foreignKey;
-			$owningAttrs = array();
-			$foreignAttrs = array();
+			$relatedAttrs = array();
 			if ($relation instanceof CBelongsToRelation) {
 				if (is_array($relation->foreignKey)) {
 					foreach ($relation->foreignKey as $k => $v) {
-						$owningAttrs[] = is_string($k) ? $k : $v;
-						$foreignAttrs[] = CActiveRecord::model($relation->className)->metaData->tableSchema->primaryKey;
+						$self = is_string($k) ? $k : $v;
+						$relatedAttrs[$self] = CActiveRecord::model($relation->className)->metaData->tableSchema->primaryKey;
 					}
 				} else {
-					$owningAttrs[] = $relation->foreignKey;
-					$foreignAttrs[] = CActiveRecord::model($relation->className)->metaData->tableSchema->primaryKey;
+					$self = $relation->foreignKey;
+					$relatedAttrs[$self] = CActiveRecord::model($relation->className)->metaData->tableSchema->primaryKey;
 				}
 			} else {
 				if (is_array($relation->foreignKey)) {
 					foreach ($relation->foreignKey as $k => $v) {
-						$owningAttrs[] = is_string($k) ? $k : $this->model->metaData->tableSchema->primaryKey;
-						$foreignAttrs[] = $v;
+						$self = is_string($k) ? $k : $this->model->metaData->tableSchema->primaryKey;
+						if(isset($relatedAttrs[$self]))
+							if(is_array($relatedAttrs[$self]))
+								$relatedAttrs[$self][] = $v;
+							else
+								$relatedAttrs[$self] = array($relatedAttrs[$self], $v);
+						else
+							$relatedAttrs[$self] = $v;
 					}
 				} else {
-					$owningAttrs[] = $this->model->metaData->tableSchema->primaryKey;
-					$foreignAttrs[] = $relation->foreignKey;
+					$self = $this->model->metaData->tableSchema->primaryKey;
+					$relatedAttrs[$self] = $relation->foreignKey;
 				}
 			}
-			Yii::trace(CVarDumper::dumpAsString($owningAttrs),'<b>DebugTrace: $owningAttrs</b>');
-			Yii::trace(CVarDumper::dumpAsString($foreignAttrs),'<b>DebugTrace: $foreignAttrs</b>');
+			Yii::trace(CVarDumper::dumpAsString($relatedAttrs),'<b>DebugTrace: $relatedAttrs</b>');
 			Yii::app()->end();
 			
 			$this->_loadKeys($keyAttrs);
