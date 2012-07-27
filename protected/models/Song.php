@@ -10,29 +10,15 @@
  * Relation attributes:
  * @property Genre[] $genres
  * @property SongGenre[] $hasGenres
- * @property Review[] $reviews
- * @property Reviewer[] $reviewers
  *
  * Virtual attributes:
  * @property array $genreNames
  */
 class Song extends CActiveRecord {
 	/**
-	 * @var string Filter/search input
+	 * @var Genre Used for CGV filter form inputs.
 	 */
-	public $genre;
-	/**
-	 * @var string Filter/search input
-	 */
-	public $review;
-	/**
-	 * @var string Filter/search input
-	 */
-	public $reviewer;
-	/**
-	 * @var CDbCriteria Criteria applied in search method
-	 */
-	public $criteria;
+	public $searchGenre;
 
 	private $_genreNames;
 
@@ -46,19 +32,17 @@ class Song extends CActiveRecord {
 
 	public function rules() {
 		return array(
-			array('name, artist, album', 'safe', 'on' => 'search, SongGenre, Review'),
-			array('genre, review, reviewer', 'safe', 'on' => 'SongGenre, Review'),
+			array('name, artist, album', 'safe', 'on' => 'search, SongGenre'),
+			array('genre, review, reviewer', 'safe', 'on' => 'SongGenre'),
 		);
 	}
 
 	public function relations() {
 		return array(
 			'hasGenres' => array(self::HAS_MANY, 'SongGenre', 'song_id'),
-			'genres' => array(self::HAS_MANY, 'Genre', 'genre_id',
-				'through' => 'hasGenres'),
+			'genres' => array(self::HAS_MANY, 'Genre', 'genre_id', 'through' => 'hasGenres'),
 			'reviews' => array(self::HAS_MANY, 'Review', 'song_id'),
-			'reviewers' => array(self::HAS_MANY, 'Reviewer', 'reviewer_id',
-				'through' => 'reviews'),
+			'reviewers' => array(self::HAS_MANY, 'Reviewer', 'reviewer_id',	'through' => 'reviews'),
 		);
 	}
 
@@ -76,6 +60,29 @@ class Song extends CActiveRecord {
 		}
 		return $this->_genreNames;
 	}
+	
+	public function getAllReviews()
+	{
+		if(!empty($this->reviews))
+		{
+			$allreviews = 'Review:<br>';
+			$moreThenOne = false;
+			foreach($this->reviews as $review)
+			{
+				if(isset($review->review))
+				{
+					if($moreThenOne) $allreviews .= '<br>Review:<br>';
+					else $moreThenOne = true;
+					$allreviews .= $review->review;
+				}
+			}
+			return $allreviews;
+		}
+		else
+		{
+			return 'Not reviewed yet.';
+		}
+	}
 
 	public function attributeLabels() {
 		return array(
@@ -88,59 +95,57 @@ class Song extends CActiveRecord {
 
 	public function search() {
 		$criteria = new CDbCriteria;
+
+		$criteria->with = array('hasGenres.genre');
+// 		$criteria->group = 't.id';
+
+		$criteria->compare('t.name', $this->name, true);
+		$criteria->compare('t.artist', $this->artist, true);
+		$criteria->compare('t.album', $this->album, true);
+
+		if ($this->searchGenre->name) {
+			preg_match_all('/\w[\w~^_@?+><+*&%$#!-]*/', $this->searchGenre->name, $genres);
+			$genres = $genres[0];
+			if ($genres) {
+				$genre = array_shift($genres);
+				$criteria->compare('genres.name', $genre, true);
+				if ($genres) {
+					foreach ($genres as $genre) {
+						$criteria->compare('genres.name', $genre, true, 'or');
+					}
+				}
+			}
+		}
+
+		$criteria->together = true;
+
 		$sort = new CSort;
-
-		if ($this->scenario === 'SongGenre') {
-			$dpModel = new SongGenre;
-
-			$criteria->compare('song.name', $this->name, true);
-			$criteria->compare('song.artist', $this->artist, true);
-			$criteria->compare('song.album', $this->album, true);
-			$criteria->compare('genre.name', $this->genre, true);
-		} elseif ($this->scenario === 'Review') {
-			$dpModel = new Review;
-
-			$criteria->compare('song.name', $this->name, true);
-			$criteria->compare('song.artist', $this->artist, true);
-			$criteria->compare('song.album', $this->album, true);
-			$criteria->compare('song.genre.name', $this->genre, true);
-			$criteria->compare('t.review', $this->review, true);
-			$criteria->compare('reviewer.name', $this->reviewer, true);
-		} else {
-			$dpModel = new Song;
-
-			$criteria->compare('name', $this->name, true);
-			$criteria->compare('artist', $this->artist, true);
-			$criteria->compare('album', $this->album, true);
-		}
-
-		if ($this->criteria) {
-			$criteria->mergeWith($this->criteria);
-		}
-
+		$sort->defaultOrder = array('song_id' => CSort::SORT_ASC);
 		$sort->attributes = array(
-			'defaultOrder' => 'song.name asc',
-			'song.name' => array(
-				'asc' => 'song.name asc',
-				'desc' => 'song.name desc',
+			'name' => array(
+				'asc' => 't.name',
+				'desc' => 't.name DESC',
 			),
-			'song.artist' => array(
-				'asc' => 'song.artist asc',
-				'desc' => 'song.artist desc',
+			'artist' => array(
+				'asc' => 't.artist',
+				'desc' => 't.artist DESC',
 			),
-			'song.album' => array(
-				'asc' => 'song.album asc',
-				'desc' => 'song.album desc',
+			'album' => array(
+				'asc' => 't.album',
+				'desc' => 't.album DESC',
 			),
-			'review' => array(
-				'asc' => 't.review asc',
-				'desc' => 't.review desc',
+			'genres.name' => array(
+				'asc' => 'genres.name',
+				'desc' => 'genres.name DESC',
 			),
+			'*',
 		);
 
-		return new CActiveDataProvider($dpModel, array(
+		return new KeenActiveDataProvider($this, array(
 			'criteria' => $criteria,
 			'sort' => $sort,
+			'withKeenLoading' => array('hasGenres.genre'),
+// 			'withKeenLoading' => 'hasGenres.genre,reviews',
 		));
 	}
 
