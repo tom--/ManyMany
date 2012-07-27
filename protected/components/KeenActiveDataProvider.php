@@ -3,13 +3,13 @@
  * KeenActiveDataProvider implements a data provider based on ActiveRecord and is
  * extended from CActiveDataProvider.
  *
- * KeenActiveDataProvider provides data in terms of ActiveRecord objects which are
- * of class {@link modelClass}. It uses the AR {@link CActiveRecord::findAll} method
- * to retrieve the data from database. The {@link criteria} property can be used to
- * specify various query options. If you add a 'with' option to the criteria, and
- * the same relations are added to the 'withKeenLoading' option, they will be 
- * automatically set to select no columns. 
- * (ie. array('author'=>array('select'=>false))
+ * KeenActiveDataProvider provides data in terms of ActiveRecord objects. It uses 
+ * the AR {@link CActiveRecord::findAll} method to retrieve the data from database. 
+ * The {@link criteria} property can be used to specify various query options. If 
+ * you add a 'with' option to the criteria, and the same relations are added to the 
+ * 'withKeenLoading' option, they will be automatically set to select no columns. 
+ * ie. array('author'=>array('select'=>false)
+ * 
  * There will be a CDbCriteria->group set automatically, that groups the model
  * to its own primary keys.
  * 
@@ -103,7 +103,6 @@ class KeenActiveDataProvider extends CActiveDataProvider {
 			}
 		}
 		$this->_withKeenLoading[] = $newWithKeen;
-		tr($this->_withKeenLoading,'$this->_withKeenLoading');
 	}
 	
 	/**
@@ -183,7 +182,6 @@ class KeenActiveDataProvider extends CActiveDataProvider {
 	protected function afterFetch($data) {
 		
 		$pks = $this->_loadKeys($data);
-		tr($pks);
 		foreach($this->_withKeenLoading as $keenGroup)
 		{
 			$relatedModels = $this->model->findAllByAttributes($pks,
