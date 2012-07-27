@@ -93,23 +93,6 @@ ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
 
 
--- -----------------------------------------------------
--- Table `review_comment`
--- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS `review_comment` (
-  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
-  `comment` TEXT NOT NULL ,
-  `review_reviewer_id` INT(10) UNSIGNED NOT NULL ,
-  `review_song_id` INT(10) UNSIGNED NOT NULL ,
-  PRIMARY KEY (`id`) ,
-  INDEX `fk_review_comment_review1` (`review_reviewer_id` ASC, `review_song_id` ASC) ,
-  CONSTRAINT `fk_review_comment_review1`
-    FOREIGN KEY (`review_reviewer_id` , `review_song_id` )
-    REFERENCES `review` (`reviewer_id` , `song_id` )
-    ON DELETE CASCADE
-    ON UPDATE CASCADE)
-ENGINE = InnoDB;
-
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;

@@ -3,18 +3,16 @@
 /**
  * Table attributes:
  * @property string $id
- * @property string $name Song name.
+ * @property string $name
  * @property string $artist
  * @property string $album
  *
  * Relation attributes:
  * @property Genre[] $genres
- * @property SongGenre[] $hasGenres Model for the genre join table.
- * @property Review[] $reviews
- * @property Reviewer[] $reviewers
+ * @property SongGenre[] $hasGenres
  *
  * Virtual attributes:
- * @property array $genreNames Two arrays with keys 'pri' and 'sec', each a list of genre names
+ * @property array $genreNames
  */
 class Song extends CActiveRecord {
 	/**
@@ -34,7 +32,8 @@ class Song extends CActiveRecord {
 
 	public function rules() {
 		return array(
-			array('id, name, artist, album', 'safe', 'on' => 'search'),
+			array('name, artist, album', 'safe', 'on' => 'search, SongGenre'),
+			array('genre, review, reviewer', 'safe', 'on' => 'SongGenre'),
 		);
 	}
 
@@ -43,7 +42,7 @@ class Song extends CActiveRecord {
 			'hasGenres' => array(self::HAS_MANY, 'SongGenre', 'song_id'),
 			'genres' => array(self::HAS_MANY, 'Genre', 'genre_id', 'through' => 'hasGenres'),
 			'reviews' => array(self::HAS_MANY, 'Review', 'song_id'),
-			'reviewers' => array(self::HAS_MANY, 'Reviewer', 'reviewer_id', 'through' => 'reviews'),
+			'reviewers' => array(self::HAS_MANY, 'Reviewer', 'reviewer_id',	'through' => 'reviews'),
 		);
 	}
 
@@ -54,11 +53,35 @@ class Song extends CActiveRecord {
 			$genres = $this->with('hasGenres', 'hasGenres.genre')->hasGenres;
 			if ($genres) {
 				foreach ($genres as $genre) {
-					$this->_genreNames[$genre->is_primary ? 'pri' : 'sec'][] = $genre->genre->name;
+					$this->_genreNames[$genre->is_primary ? 'pri' : 'sec'][] =
+						$genre->genre->name;
 				}
 			}
 		}
 		return $this->_genreNames;
+	}
+	
+	public function getAllReviews()
+	{
+		if(!empty($this->reviews))
+		{
+			$allreviews = 'Review:<br>';
+			$moreThenOne = false;
+			foreach($this->reviews as $review)
+			{
+				if(isset($review->review))
+				{
+					if($moreThenOne) $allreviews .= '<br>Review:<br>';
+					else $moreThenOne = true;
+					$allreviews .= $review->review;
+				}
+			}
+			return $allreviews;
+		}
+		else
+		{
+			return 'Not reviewed yet.';
+		}
 	}
 
 	public function attributeLabels() {
@@ -73,9 +96,8 @@ class Song extends CActiveRecord {
 	public function search() {
 		$criteria = new CDbCriteria;
 
-		$criteria->with = array('genres');
-
-		$criteria->group = 't.id';
+		$criteria->with = array('hasGenres.genre');
+// 		$criteria->group = 't.id';
 
 		$criteria->compare('t.name', $this->name, true);
 		$criteria->compare('t.artist', $this->artist, true);
@@ -119,9 +141,12 @@ class Song extends CActiveRecord {
 			'*',
 		);
 
-		return new CActiveDataProvider($this, array(
+		return new KeenActiveDataProvider($this, array(
 			'criteria' => $criteria,
 			'sort' => $sort,
+			'withKeenLoading' => array('hasGenres.genre'),
+// 			'withKeenLoading' => 'hasGenres.genre,reviews',
 		));
 	}
+
 }
