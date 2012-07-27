@@ -19,9 +19,7 @@ class Reviewer extends CActiveRecord {
 	}
 
 	public function rules() {
-		return array(
-			array('id, name', 'safe', 'on' => 'search'),
-		);
+		return array();
 	}
 
 	public function relations() {
