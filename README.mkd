@@ -21,3 +21,8 @@ displating genres. Perhaps with a subquery? Maybe use
 Um. Ok, that's the only idea I have.
 
 Make suggestions!
+
+
+
+
+![githalytics.com alpha](https://cruel-calota.pagodabox.com/fd8ab8e88dd5a7ef5f6ab6d4b9b0254e)
