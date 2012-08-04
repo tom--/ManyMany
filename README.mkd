@@ -16,19 +16,16 @@ All gridviews have working implementations of paging, sorting and filtering.
 With these four methods, it might be hard to choose which one to use. Here are some considerations:
 
 1. **UseCase One**
-    Pro: Default Yii lazy loading
-    Con: A lot of queries(!)
-
+    - Pro: Default Yii lazy loading
+    - Con: A lot of queries(!)
 2. **UseCase Two**
     - Pro: Most data efficient
     - Pro: Only one query
     - Con: No manipulation of data of the related Model(s)
-
 3. **UseCase Three**
     - Pro: Default Yii eager loading
     - Neutral: Up to two extra COUNT queries. (For a max of three queries)
     - Con: Like all eager loading, this can become data inefficient
-
 4. **KeenLoading**
     - Pro: Able to manipulate data of the related Model(s)
     - Pro: Still very efficient
