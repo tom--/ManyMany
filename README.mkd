@@ -6,7 +6,7 @@ A Yii app for experimenting with complex grid views
 
 The app shows four ways of implementing the loading of related data in a gridview.
 
-All gridviews have working implementations of paging, sorting and filtering.
+All gridviews have working implementations of [paging, sorting and filtering](#cgridview-paging-sorting-and-filtering).
 
 1. **[UseCase One](#usecase-one---lazy-loading)**: Only primary data is loaded with the `CActiveDataProvider`, related data is Lazy loaded.
 2. **[UseCase Two](#usecase-two---group_concat)**: Related data is loaded using a GROUP_CONCAT query. This is the most data efficient way, but you can't do any manipulation using the join-model or related-model.
