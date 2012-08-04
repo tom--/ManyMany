@@ -10,7 +10,7 @@ All gridviews have working implementations of paging, sorting and filtering.
 
 1. **[UseCase One](#usecase-one---lazy-loading)**: Only primary data is loaded with the `CActiveDataProvider`, related data is Lazy loaded.
 2. **[UseCase Two](#usecase-two---group_concat)**: Related data is loaded using a GROUP_CONCAT query. This is the most data efficient way, but you can't do any manipulation using the join-model or related-model.
-3. **UseCase Three**: You normally can't use Yii's Eager Loading method in gridviews in combination with a pager. (If you don't use the pager, you can Eager load without problems.)   
+3. **[UseCase Three](#usecase-two---group_concat)**: You normally can't use Yii's Eager Loading method in gridviews in combination with a pager. (If you don't use the pager, you can Eager load without problems.)   
  The reason why it won't work with the pager is because the pager adds LIMIT and OFFSET to the query, but those are static. In combination with JOIN statements, this becomes a problem. I made some changes to _CActiveFinder_ so the correct LIMIT and OFFSET numbers are calculated using two seperate COUNT queries. This will enable you to use Yii's Eager loading without any problems.
 4. **UseCase Four - KeenLoading**: This method uses a custom `KeenActiveDataProvider`, which loads all related data in a Keen way using a seperate query.
 
@@ -63,7 +63,7 @@ Additionally, make sure to set the relations in `$criteria->with` that are lazy 
 Same as the explenation of UseCase One. In addition:  
 You set a `$criteria->select`, that selects a GROUP_CONCAT of the data from Genre. Don't forget to set the attributes of the main Model here or else those aren't loaded. Note that you don't have to include the primary keys in this select statement. Those are automatically added by Yii.  
 An example:  
-```
+```php
 <?php
     $criteria->select = array(
         //This attribute (allGenres) has to be added in the Model as a public property!
@@ -93,7 +93,7 @@ The extra COUNT queries will only be performed when:
 4. $criteria->together has been set to true
 
 
-### UseCase Fout - KeenLoading
+### UseCase Four - KeenLoading
 
 **Methods**
 - components/KeenActiveDataProvider
@@ -107,7 +107,7 @@ The extra COUNT queries will only be performed when:
 Related data is loaded in a keen fashion. Using KeenActiveDataProvider, the related models are loaded in a seperate query and then put into the relation properties of the earlier loaded models.  
 In your Models search function, you return a new KeenActiveDataProvider, instead of a CActiveDataProvider. The KeenActiveDataProvider has another option named 'withKeenLoading', where you can set the relations that you want to load in a second(or multiple) queries.
 An example:
-```
+```php
 <?php
     return new KeenActiveDataProvider($this, array(
 		'criteria' => $criteria,
