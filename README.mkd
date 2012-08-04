@@ -50,6 +50,7 @@ You group the primary keys of Review, and set together to true. You don't select
 Because you're grouping the primary keys, the database returns only one row for each primary Model. This is why the pager doesn't break even though you set `$criteria->together` to `true`.  
 Additionally, make sure to set the relations in `$criteria->with` that are lazy loaded to `array('select'=>false)`. This is more efficient since you're loading this data in a lazy way, so you don't need it in the first `SELECT` that the `CActiveDataProvider` performs..  
 
+
 ### UseCase Two - GROUP_CONCAT
 
 **Methods**
@@ -62,12 +63,55 @@ Additionally, make sure to set the relations in `$criteria->with` that are lazy 
 Same as the explenation of UseCase One. In addition:  
 You set a `$criteria->select`, that selects a GROUP_CONCAT of the data from Genre. Don't forget to set the attributes of the main Model here or else those aren't loaded. Note that you don't have to include the primary keys in this select statement. Those are automatically added by Yii.  
 An example:  
-```javascript
-$criteria->select = array(
-    //You don't need to select primary keys, they are automatically added.
-    'GROUP_CONCAT(genres.name ORDER BY genres.name SEPARATOR \', \') AS allGenres',
-    't.review',
+```
+<?php
+    $criteria->select = array(
+        //This attribute (allGenres) has to be added in the Model as a public property!
+        'GROUP_CONCAT(genres.name ORDER BY genres.name SEPARATOR \', \') AS allGenres', 
+        't.review',
    );
 ```
-3. *Review::search3()* - Using classMap you import a custom CActiveFinder that enhances the eager loading magic of Yii. Easiest, but the disadvantage is that is does another 2 COUNT queries for the pager to work.
-4. *Song::search()* - Related data is loaded in a keen fashion. Using KeenActiveDataProvider, the related models are loaded in a seperate query and then put into the relation properties of the earlier loaded models.
+_Note: In addition, you can look at _caseTwoGrid.php to see how you can use a dropDownList in a gridview filter to search for a genre._
+
+
+### UseCase Three - Custom CActiveFinder
+
+**Methods**
+- extensions/classMap/CActiveFinder
+- /index.php
+- models/Review::searchThree()
+- controllers/ReviewController::actionCaseThree()
+- views/review/caseThree
+- views/review/_caseThreeGrid
+
+**Explenation**  
+Using classMap you import a custom CActiveFinder that enhances the eager loading magic of Yii. Easiest, but the disadvantage is that is does another 2 COUNT queries for the pager to work. Like the normal Eager loading way of Yii, this can become data inefficient in some cases.  
+The extra COUNT queries will only be performed when:
+1. the primary table is joined with HAS_MANY or MANY_MANY relations
+2. Columns of those relations are selected
+3. $criteria->group has been set
+4. $criteria->together has been set to true
+
+
+### UseCase Fout - KeenLoading
+
+**Methods**
+- components/KeenActiveDataProvider
+- models/Song::search()
+- controllers/SongController::actionSongs()
+- controllers/SongController::setSearchInputs()
+- views/song/songsGrid
+- views/song/_songsGrid
+
+**Explenation**  
+Related data is loaded in a keen fashion. Using KeenActiveDataProvider, the related models are loaded in a seperate query and then put into the relation properties of the earlier loaded models.  
+In your Models search function, you return a new KeenActiveDataProvider, instead of a CActiveDataProvider. The KeenActiveDataProvider has another option named 'withKeenLoading', where you can set the relations that you want to load in a second(or multiple) queries.
+An example:
+```
+<?php
+    return new KeenActiveDataProvider($this, array(
+		'criteria' => $criteria,
+		'withKeenLoading' => array('hasGenres.genre'),
+	));
+```
+_Note: In addition, you can look at Song::search() to see how you can enable the gridviews filter to search for multiple Genres using a comma or space in the input field._
