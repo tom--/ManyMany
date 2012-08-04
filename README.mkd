@@ -15,8 +15,8 @@ All gridviews have working implementations of paging, sorting and filtering.
 
 With these four methods, it might be hard to choose which one to use. Here are some considerations:
 
-1. **UseCase One**
-    Pro: Default Yii lazy loading
+1. **UseCase One**  
+    Pro: Default Yii lazy loading  
     Con: A lot of queries(!)
 
 2. **UseCase Two**
@@ -39,7 +39,7 @@ With these four methods, it might be hard to choose which one to use. Here are s
 UseCase One - Lazy Loading
 ----
 
-***Methods***
+***Methods***  
 Review::search()
 
 1. *Review::search()* - You group the primary/foreign keys of Review, and set together to true. You don't select any data from Genre, because its lazy loaded for each row.
