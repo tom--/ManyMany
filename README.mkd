@@ -19,30 +19,33 @@ With these four methods, it might be hard to choose which one to use. Here are s
     Pro: Default Yii lazy loading  
     Con: A lot of queries(!)
 
-2. **UseCase Two**
-    - Pro: Most data efficient
-    - Pro: Only one query
-    - Con: No manipulation of data of the related Model(s)
+2. **UseCase Two**  
+    Pro: Most data efficient  
+    Pro: Only one query  
+    Con: No manipulation of data of the related Model(s)
 
-3. **UseCase Three**
-    - Pro: Default Yii eager loading
-    - Neutral: Up to two extra COUNT queries. (For a max of three queries)
-    - Con: Like all eager loading, this can become data inefficient
+3. **UseCase Three**  
+    Pro: Default Yii eager loading  
+    Neutral: Up to two extra COUNT queries. (For a max of three queries)  
+    Con: Like all eager loading, this can become data inefficient
 
-4. **KeenLoading**
-    - Pro: Able to manipulate data of the related Model(s)
-    - Pro: Still very efficient
-    - Neutral: One extra query for loading the related Model(s)
+4. **KeenLoading**  
+    Pro: Able to manipulate data of the related Model(s)  
+    Pro: Still very efficient  
+    Neutral: One extra query for loading the related Model(s)
 
 ---
 
-UseCase One - Lazy Loading
-----
+### UseCase One - Lazy Loading
 
-***Methods***  
-Review::search()
+**Methods**
+- models/Review::searchOne()
+- controllers/ReviewController::actionCaseOne()
+- views/review/caseOne
+- views/review/_caseOneGrid
 
-1. *Review::search()* - You group the primary/foreign keys of Review, and set together to true. You don't select any data from Genre, because its lazy loaded for each row.
+**Explenation**  
+You group the primary/foreign keys of Review, and set together to true. You don't select any data from Genre, because its lazy loaded for each row.
 2. *Review::search2()* - Same as above, but you select a GROUP_CONCAT of the data from Genre. Most efficient eager loading.
 3. *Review::search3()* - Using classMap you import a custom CActiveFinder that enhances the eager loading magic of Yii. Easiest, but the disadvantage is that is does another 2 COUNT queries for the pager to work.
 4. *Song::search()* - Related data is loaded in a keen fashion. Using KeenActiveDataProvider, the related models are loaded in a seperate query and then put into the relation properties of the earlier loaded models.
