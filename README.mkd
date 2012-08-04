@@ -43,10 +43,12 @@ With these four methods, it might be hard to choose which one to use. Here are s
 - controllers/ReviewController::actionCaseOne()
 - views/review/caseOne
 - views/review/_caseOneGrid
-\   
 
 **Explenation**  
-You group the primary/foreign keys of Review, and set together to true. You don't select any data from Genre, because its lazy loaded for each row.
+You group the primary keys of Review, and set together to true. You don't select any data from Genre, because then its lazy loaded for each row.  
+Because you're grouping the primary keys, the database returns only one row for each primary Model. This is why the pager doesn't break even though you set `$criteria->together` to `true`.  
+Additionally, make sure to set the relations in `$criteria->with` that are lazy loaded to `array('select'=>false)`. This is more efficient since you're loading this data in a lazy way, so you don't need it in the first `SELECT`.  
+
 2. *Review::search2()* - Same as above, but you select a GROUP_CONCAT of the data from Genre. Most efficient eager loading.
 3. *Review::search3()* - Using classMap you import a custom CActiveFinder that enhances the eager loading magic of Yii. Easiest, but the disadvantage is that is does another 2 COUNT queries for the pager to work.
 4. *Song::search()* - Related data is loaded in a keen fashion. Using KeenActiveDataProvider, the related models are loaded in a seperate query and then put into the relation properties of the earlier loaded models.
