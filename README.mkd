@@ -62,7 +62,7 @@ Additionally, make sure to set the relations in `$criteria->with` that are lazy 
 Same as the explenation of UseCase One. In addition:  
 You set a `$criteria->select`, that selects a GROUP_CONCAT of the data from Genre. Don't forget to set the attributes of the main Model here or else those aren't loaded. Note that you don't have to include the primary keys in this select statement. Those are automatically added by Yii.  
 An example:  
-```java
+```php
 $criteria->select = array(
     //You don't need to select primary keys, they are automatically added.
     'GROUP_CONCAT(genres.name ORDER BY genres.name SEPARATOR \', \') AS allGenres',
