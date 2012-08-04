@@ -115,3 +115,56 @@ An example:
 	));
 ```
 _Note: In addition, you can look at Song::search() to see how you can enable the gridviews filter to search for multiple Genres using a comma or space in the input field._
+
+
+###Extra: Full explenation of KeenActiveDataProvider
+KeenActiveDataProvider implements a data provider based on ActiveRecord and is extended from CActiveDataProvider.
+
+KeenActiveDataProvider provides data in terms of ActiveRecord objects. It uses 
+the AR {@link CActiveRecord::findAll} method to retrieve the data from database. 
+The {@link criteria} property can be used to specify various query options. If 
+you add a 'with' option to the criteria, and the same relations are added to the 
+'withKeenLoading' option, they will be automatically set to select no columns.  
+ie. `array('author'=>array('select'=>false)`
+
+There will be a CDbCriteria->group set automatically, that groups the model
+to its own primary keys.
+
+The relation names you specify in the 'withKeenLoading' property of the 
+configuration array will be loaded in a keen fashion. A seperate database
+query will be done to pull the data of those specified related models.
+
+For example,
+```php
+<?php
+    $dataProvider=new KeenActiveDataProvider('Post', array(
+        'criteria'=>array(
+            'condition'=>'status=1',
+            'with'=>array('author'),
+        ),
+        'pagination'=>array(
+            'pageSize'=>20,
+        ),
+        'withKeenLoading'=>array(
+            'author',
+            'comments'=>array('condition'=>'approved=1', 'order'=>'create_time'),
+        )
+));
+```
+
+The property withKeenLoading can be set as a string with comma seperated relation names, 
+or an array. The array keys are relation names, and the array values are 
+the corresponding query options.
+
+In some cases, you don't want all relations to be Keenly loaded in a single
+query because of data efficiency. In that case, you can group relations in multiple queries
+using a multidimensional array. (Arrays inside an array.) Each array will 
+be keenly loaded in a seperate query.
+Example:
+```php
+<?php
+    'withKeenLoading'=>array(
+        array('relationA','relationB),
+        array('relationC')
+    )
+```
