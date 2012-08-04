@@ -16,8 +16,8 @@ All gridviews have working implementations of paging, sorting and filtering.
 With these four methods, it might be hard to choose which one to use. Here are some considerations:
 
 1. **UseCase One**
-    - Pro: Default Yii lazy loading
-    - Con: A lot of queries(!)
+    Pro: Default Yii lazy loading
+    Con: A lot of queries(!)
 
 2. **UseCase Two**
     - Pro: Most data efficient
