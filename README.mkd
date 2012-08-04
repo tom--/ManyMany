@@ -62,11 +62,12 @@ Additionally, make sure to set the relations in `$criteria->with` that are lazy 
 Same as the explenation of UseCase One. In addition:  
 You set a `$criteria->select`, that selects a GROUP_CONCAT of the data from Genre. Don't forget to set the attributes of the main Model here or else those aren't loaded. Note that you don't have to include the primary keys in this select statement. Those are automatically added by Yii.  
 An example:  
-    $criteria->select = array(
-        //You don't need to select primary keys, they are automatically added.
-        'GROUP_CONCAT(genres.name ORDER BY genres.name SEPARATOR \', \') AS allGenres',
-        't.review',
-       );
-
+```php
+$criteria->select = array(
+    //You don't need to select primary keys, they are automatically added.
+    'GROUP_CONCAT(genres.name ORDER BY genres.name SEPARATOR \', \') AS allGenres',
+    't.review',
+   );
+```
 3. *Review::search3()* - Using classMap you import a custom CActiveFinder that enhances the eager loading magic of Yii. Easiest, but the disadvantage is that is does another 2 COUNT queries for the pager to work.
 4. *Song::search()* - Related data is loaded in a keen fashion. Using KeenActiveDataProvider, the related models are loaded in a seperate query and then put into the relation properties of the earlier loaded models.
