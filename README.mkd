@@ -12,7 +12,7 @@ All gridviews have working implementations of [paging, sorting and filtering](#c
 2. **[UseCase Two](#usecase-two---group_concat)**: Related data is loaded using a GROUP_CONCAT query. This is the most data efficient way, but you can't do any manipulation using the join-model or related-model.
 3. **[UseCase Three](#usecase-two---group_concat)**: You normally can't use Yii's Eager Loading method in gridviews in combination with a pager. (If you don't use the pager, you can Eager load without problems.)   
  The reason why it won't work with the pager is because the pager adds LIMIT and OFFSET to the query, but those are static. In combination with JOIN statements, this becomes a problem. I made some changes to _CActiveFinder_ so the correct LIMIT and OFFSET numbers are calculated using two seperate COUNT queries. This will enable you to use Yii's Eager loading without any problems.
-4. **[UseCase Four](#usecase-four---keenloading) - KeenLoading**: This method uses a custom `KeenActiveDataProvider`, which loads all related data in a Keen way using a seperate query.
+4. **[UseCase Four - KeenLoading](#usecase-four---keenloading)**: This method uses a custom `KeenActiveDataProvider`, which loads all related data in a Keen way using a seperate query.
 
 With these four methods, it might be hard to choose which one to use. Here are some considerations:
 
