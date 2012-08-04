@@ -43,6 +43,7 @@ With these four methods, it might be hard to choose which one to use. Here are s
 - controllers/ReviewController::actionCaseOne()
 - views/review/caseOne
 - views/review/_caseOneGrid
+\   
 
 **Explenation**  
 You group the primary/foreign keys of Review, and set together to true. You don't select any data from Genre, because its lazy loaded for each row.
