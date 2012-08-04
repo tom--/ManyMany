@@ -8,7 +8,7 @@ The app shows four ways of implementing the loading of related data in a gridvie
 
 All gridviews have working implementations of paging, sorting and filtering.
 
-1. **[UseCase One](#one)**: Only primary data is loaded with the DataProvider, related data is Lazy loaded.
+1. **[UseCase One](#usecase-one---lazy-loading-)**: Only primary data is loaded with the DataProvider, related data is Lazy loaded.
 2. **UseCase Two**: Related data is loaded using a GROUP_CONCAT query. This is the most data efficient way, but you can't do any manipulation using the join-model or related-model.
 3. **UseCase Three**: You normally can't use Yii's Eager Loading method in gridviews in combination with a pager. (If you don't use the pager, you can Eager load without problems.) The reason why it won't work with the pager is because the pager adds LIMIT and OFFSET to the query, but those are static. In combination with JOIN statements, this becomes a problem. I made some changes to CActiveFinder so the correct LIMIT and OFFSET numbers are calculated using two seperate COUNT queries. This will enable you to use Yii's Eager loading without any problems.
 4. **UseCase Four - KeenLoading**: This method uses a custom KeenActiveDataProvider, which loads all related data in a Keen way using a seperate query.
@@ -36,7 +36,7 @@ With these four methods, it might be hard to choose which one to use. Here are s
 
 ---
 
-UseCase One - Lazy Loading <a id="one"></a>
+UseCase One - Lazy Loading
 ----
 
 1. *Review::search()* - You group the primary/foreign keys of Review, and set together to true. You don't select any data from Genre, because its lazy loaded for each row.
