@@ -37,10 +37,80 @@ With these four methods, it might be hard to choose which one to use. Here are s
 
 1. CGridView: Paging, Sorting and Filtering
 ---------
-_[to be added]_  
+
+### 1.1 Paging
+The `CPagination` object in your `CActiveDataProvider` adds LIMIT and OFFSET to the SQL query that Yii performs. This can become a problem when you do queries with JOIN in them, because the database returns multiple rows for one model, while Yii expects one row returned for each model.  
+The easiest way to fix this, is to group by the primary key(s) of your main model, like this:
+```php
+<?php
+	$criteria = new CDbCriteria;
+    $criteria->group = 't.id';
+```
+The UseCases shown below all do this in one way or another.
+Reference: [Review::searchOne()](https://github.com/tom--/ManyMany/blob/yj-KeenLoading/protected/models/Review.php#L62)
+
+### 1.2 Sorting
+When you have a column in your CGridView that isn't an attribute of the model, Yii doesn't automatically know how to sort. But we can tell the `sort` parameter of the CActiveDataProvider how.  
+First, you have one or more columns that show related data. Those columns have a name attribute (example: `'name' => 'song.album',`), and we have to tell Yii how to sort that song's attribute called album.
+
+You have to add the attribute called `song.album` to the attributes array of 'sort'. Then you tell Yii how to sort that attribute ascending, and descending. Like this:
+```php
+<?php
+	return new CActiveDataProvider($this, array(
+        'criteria' => $criteria,
+        'sort'=>array(
+            'attributes'=>array(
+                'song.album'=>array(
+                    'asc'=>'song.album',
+                    'desc'=>'song.album DESC',
+                ),
+                '*',
+            ),
+        ),
+	));
+```
+Reference:  [views/review/_caseOneGrid](https://github.com/tom--/ManyMany/blob/yj-KeenLoading/protected/views/review/_caseOneGrid.php#L28), 
+            [Review::searchOne()](https://github.com/tom--/ManyMany/blob/yj-KeenLoading/protected/models/Review.php#L88)
 
 
+### 1.3 Filtering
+This one will be a little bit more complex to implement. Think of the filters on the top of the CGridView as normal <INPUT> fields (because they are!), just like you would make them with `CHtml::activeTextField($review, 'review')`. Now of course, such a textfield wants a $model in the first parameter, and an attribute name in the second parameter.
 
+We are going to base the filter's <INPUT> field on the related Model. The advantage of this is that you keep Yii's default functionality, like validation of the input.
+
+First, in the Controller, we create such a model for the column with the related data: `$song   = new Song('search');`  
+Then we unset its attributes, just like we do for the main model: `$song->unsetAttributes();`  
+Okay, so now we have a $song model variable that we could use in an activeTextField. We have to pass this variable to the View. We use a more elegant approach to this, and put this variable $song inside a property of the main model, $review. To do this, we first have to declare this property in the Review model: `public $searchSong;`  
+Now, back to the controller, we put the Song model into that property: `$review->searchSong = $song;`
+
+In the view, we create a column with a self defined value, like this:
+```php
+<?php
+	array(
+		'name' => 'song.name',
+		'filter' => CHtml::activeTextField($review->searchSong, 'name'),
+	),
+```
+As you can see, we pass the Song model into the first parameter, and an attribute of that model into the second parameter. So far, so good.. If we refresh the page it shows an <INPUT> field ontop of the column and we can type in there. But what happens if we type and then presh [ENTER]? A submit action will be performed back to the Controller.  
+In the Controller, we have to catch the send data and place it into the $song model. We do that in the same way as you'd do that for the main Model:
+```php
+<?php
+    if (isset($_GET['Song'])) {
+        $song->attributes = $_GET['Song'];
+    }
+```
+
+Now we have to go to the place where CGridView's searching magic actually happens, the method in the main Model that providers a DataProvider to the CGridView.  
+Here, we simply add extra `$criteria->compare()`'s for the column we want to filter. We use the model inside the $searchXxx property to make this work, since we added the searched value in there earlier in the Controller.
+```php
+<?php
+    `$criteria->compare('song.name', $this->searchSong->name, true);`
+```
+
+Reference:  [ReviewController::actionCaseOne()](https://github.com/tom--/ManyMany/blob/yj-KeenLoading/protected/controllers/ReviewController.php#L11), 
+            [Review::$searchSong](https://github.com/tom--/ManyMany/blob/yj-KeenLoading/protected/models/Review.php#L14), 
+            [views/review/_caseOneGrid](https://github.com/tom--/ManyMany/blob/yj-KeenLoading/protected/views/review/_caseOneGrid.php#L21), 
+            [Review::searchOne()](https://github.com/tom--/ManyMany/blob/yj-KeenLoading/protected/models/Review.php#L68)
 
 2. UseCases
 ---------
