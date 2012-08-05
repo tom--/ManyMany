@@ -41,7 +41,7 @@ With these four methods, it might be hard to choose which one to use. Here are s
 
 ### 1.1 Paging
 The `CPagination` object in your `CActiveDataProvider` adds LIMIT and OFFSET to the SQL query that Yii performs. This can become a problem when you do queries with JOIN in them(if you set together=true for eager loading), because the database returns multiple rows for one model, while Yii expects one row returned for each model.  
-The easiest way to fix this, is to group by the primary key(s) of your main model. The UseCases shown below all do this in one way or another, like this:
+The easiest way to fix this, is to group by the primary key(s) of your main model. The UseCases shown below all do this in one way or another.
 ```php
 <?php
 	$criteria = new CDbCriteria;
@@ -53,7 +53,8 @@ Reference: [Review::searchOne()](https://github.com/tom--/ManyMany/blob/yj-KeenL
 
 ### 1.2 Sorting
 When you have a column in your CGridView that isn't an attribute of the model, Yii doesn't automatically know how to sort. But we can tell the `sort` parameter of the CActiveDataProvider how.  
-First, you have one or more columns in the View that show related data. Those columns have a 'name' attribute (example: `'name' => 'song.album',`), and we have to tell Yii how to sort that song's attribute called album.
+First, you have one or more columns in the View that show related data. Those columns have a 'name' attribute  
+(example: `'name' => 'song.album',`), and we have to tell Yii how to sort that song's attribute called album.
 
 You have to add the attribute called `song.album` to the attributes array of 'sort'. Then you tell Yii how to sort that attribute ascending, and descending. Like this:
 ```php
@@ -83,7 +84,7 @@ We are going to base the filter's <INPUT> field on the related Model. The advant
 First, in the Controller, we create such a model for the column with the related data: `$song   = new Song('search');`  
 Then we unset its attributes, just like we do for the main model: `$song->unsetAttributes();`
 
-Okay, so now we have a $song model variable that we could use in an activeTextField. We have to pass this variable to the View. We use a more elegant approach to this, and put this variable $song inside a property of the main model, $review. To do this, we first have to declare this property in the Review model: `public $searchSong;`  
+Okay, so now we have a $song model variable that we could use in an activeTextField. We have to pass this variable to the View. We use a more elegant approach to this, and put this variable $song inside a property of the main model Review. To do this, we first have to declare this property in the Review model: `public $searchSong;`  
 Now, back to the controller, we put the Song model into that property: `$review->searchSong = $song;`
 
 In the view, we create a column with a self defined filter, like this:
