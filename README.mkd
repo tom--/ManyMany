@@ -39,19 +39,20 @@ With these four methods, it might be hard to choose which one to use. Here are s
 ---------
 
 ### 1.1 Paging
-The `CPagination` object in your `CActiveDataProvider` adds LIMIT and OFFSET to the SQL query that Yii performs. This can become a problem when you do queries with JOIN in them, because the database returns multiple rows for one model, while Yii expects one row returned for each model.  
-The easiest way to fix this, is to group by the primary key(s) of your main model, like this:
+The `CPagination` object in your `CActiveDataProvider` adds LIMIT and OFFSET to the SQL query that Yii performs. This can become a problem when you do queries with JOIN in them(if you set together=true for eager loading), because the database returns multiple rows for one model, while Yii expects one row returned for each model.  
+The easiest way to fix this, is to group by the primary key(s) of your main model. The UseCases shown below all do this in one way or another, like this:
 ```php
 <?php
 	$criteria = new CDbCriteria;
+	$criteria->with = array('song');
     $criteria->group = 't.id';
+	$criteria->together = true;
 ```
-The UseCases shown below all do this in one way or another.
 Reference: [Review::searchOne()](https://github.com/tom--/ManyMany/blob/yj-KeenLoading/protected/models/Review.php#L62)
 
 ### 1.2 Sorting
 When you have a column in your CGridView that isn't an attribute of the model, Yii doesn't automatically know how to sort. But we can tell the `sort` parameter of the CActiveDataProvider how.  
-First, you have one or more columns that show related data. Those columns have a name attribute (example: `'name' => 'song.album',`), and we have to tell Yii how to sort that song's attribute called album.
+First, you have one or more columns in the View that show related data. Those columns have a 'name' attribute (example: `'name' => 'song.album',`), and we have to tell Yii how to sort that song's attribute called album.
 
 You have to add the attribute called `song.album` to the attributes array of 'sort'. Then you tell Yii how to sort that attribute ascending, and descending. Like this:
 ```php
@@ -79,11 +80,12 @@ This one will be a little bit more complex to implement. Think of the filters on
 We are going to base the filter's <INPUT> field on the related Model. The advantage of this is that you keep Yii's default functionality, like validation of the input.
 
 First, in the Controller, we create such a model for the column with the related data: `$song   = new Song('search');`  
-Then we unset its attributes, just like we do for the main model: `$song->unsetAttributes();`  
+Then we unset its attributes, just like we do for the main model: `$song->unsetAttributes();`
+
 Okay, so now we have a $song model variable that we could use in an activeTextField. We have to pass this variable to the View. We use a more elegant approach to this, and put this variable $song inside a property of the main model, $review. To do this, we first have to declare this property in the Review model: `public $searchSong;`  
 Now, back to the controller, we put the Song model into that property: `$review->searchSong = $song;`
 
-In the view, we create a column with a self defined value, like this:
+In the view, we create a column with a self defined filter, like this:
 ```php
 <?php
 	array(
@@ -91,7 +93,8 @@ In the view, we create a column with a self defined value, like this:
 		'filter' => CHtml::activeTextField($review->searchSong, 'name'),
 	),
 ```
-As you can see, we pass the Song model into the first parameter, and an attribute of that model into the second parameter. So far, so good.. If we refresh the page it shows an <INPUT> field ontop of the column and we can type in there. But what happens if we type and then presh [ENTER]? A submit action will be performed back to the Controller.  
+As you can see, we pass the Song model into the first parameter, and an attribute of that model into the second parameter. So far, so good.. If we refresh the page it shows an <INPUT> field on top of the column and we can type in there. But what happens if we type and then press _ENTER_? A submit action will be performed back to the Controller.
+
 In the Controller, we have to catch the send data and place it into the $song model. We do that in the same way as you'd do that for the main Model:
 ```php
 <?php
@@ -100,7 +103,8 @@ In the Controller, we have to catch the send data and place it into the $song mo
     }
 ```
 
-Now we have to go to the place where CGridView's searching magic actually happens, the method in the main Model that providers a DataProvider to the CGridView.  
+Now we have to go to the place where CGridView's searching magic actually happens, the method in the main Model that providers a DataProvider to the CGridView.
+
 Here, we simply add extra `$criteria->compare()`'s for the column we want to filter. We use the model inside the $searchXxx property to make this work, since we added the searched value in there earlier in the Controller.
 ```php
 <?php
@@ -123,7 +127,7 @@ Reference:  [ReviewController::actionCaseOne()](https://github.com/tom--/ManyMan
 - views/review/caseOne
 - views/review/_caseOneGrid
 
-**Explenation**  
+**Explanation**  
 You group the primary keys of Review, and set together to true. You don't select any data from Genre, because then its lazy loaded for each row.  
 Because you're grouping the primary keys, the database returns only one row for each primary Model. This is why the pager doesn't break even though you set `$criteria->together` to `true`.  
 Additionally, make sure to set the relations in `$criteria->with` that are lazy loaded to `array('select'=>false)`. This is more efficient since you're loading this data in a lazy way, so you don't need it in the first `SELECT` that the `CActiveDataProvider` performs..  
@@ -137,8 +141,8 @@ Additionally, make sure to set the relations in `$criteria->with` that are lazy 
 - views/review/caseTwo
 - views/review/_caseTwoGrid
 
-**Explenation**  
-Same as the explenation of UseCase One. In addition:  
+**Explanation**  
+Same as the explanation of UseCase One. In addition:  
 You set a `$criteria->select`, that selects a GROUP_CONCAT of the data from Genre. Don't forget to set the attributes of the main Model here or else those aren't loaded. Note that you don't have to include the primary keys in this select statement. Those are automatically added by Yii.  
 An example:  
 ```php
@@ -162,7 +166,7 @@ _Note: In addition, you can look at _caseTwoGrid.php to see how you can use a dr
 - views/review/caseThree
 - views/review/_caseThreeGrid
 
-**Explenation**  
+**Explanation**  
 Using classMap you import a custom CActiveFinder that enhances the eager loading magic of Yii. Easiest, but the disadvantage is that it does another 2 COUNT queries for the pager to work. Like the normal Eager loading way of Yii, this can become data inefficient in some cases.  
 The extra COUNT queries will only be performed when:
 1. the primary table is joined with HAS_MANY or MANY_MANY relations
@@ -181,8 +185,8 @@ The extra COUNT queries will only be performed when:
 - views/song/songsGrid
 - views/song/_songsGrid
 
-**Explenation**  
-Related data is loaded in a keen fashion. Using KeenActiveDataProvider, the related models are loaded in a seperate query and then put into the relation properties of the earlier loaded models.  
+**Explanation**  
+Related data is loaded in a keen fashion. Using KeenActiveDataProvider, the related models are loaded in a separate query and then put into the relation properties of the earlier loaded models.  
 In your Models search function, you return a new KeenActiveDataProvider, instead of a CActiveDataProvider. The KeenActiveDataProvider has another option named 'withKeenLoading', where you can set the relations that you want to load in a second(or multiple) queries.
 An example:
 ```php
@@ -195,7 +199,7 @@ An example:
 _Note: In addition, you can look at Song::search() to see how you can enable the gridviews filter to search for multiple Genres using a comma or space in the input field._  
 
 
-3. Extra: Full explenation of KeenActiveDataProvider
+3. Extra: Full explanation of KeenActiveDataProvider
 ---------
 KeenActiveDataProvider implements a data provider based on ActiveRecord and is extended from CActiveDataProvider.
 
@@ -214,7 +218,7 @@ There will be a `CDbCriteria->group` set automatically, that groups the model
 to its own primary keys.
 
 The relation names you specify in the 'withKeenLoading' property of the 
-configuration array will be loaded in a keen fashion. A seperate database
+configuration array will be loaded in a keen fashion. A separate database
 query will be done to pull the data of those specified related models.
 
 For example,
@@ -235,14 +239,14 @@ For example,
 ));
 ```
 
-The property withKeenLoading can be set as a string with comma seperated relation names, 
+The property withKeenLoading can be set as a string with comma separated relation names, 
 or an array. The array keys are relation names, and the array values are 
 the corresponding query options.
 
 In some cases, you don't want all relations to be Keenly loaded in a single
 query because of data efficiency. In that case, you can group relations in multiple queries
 using a multidimensional array. (Arrays inside an array.) Each array will 
-be keenly loaded in a seperate query.
+be keenly loaded in a separate query.
 Example:
 ```php
 <?php
