@@ -108,7 +108,7 @@ Now we have to go to the place where CGridView's searching magic actually happen
 Here, we simply add extra `$criteria->compare()`'s for the column we want to filter. We use the model inside the $searchXxx property to make this work, since we added the searched value in there earlier in the Controller.
 ```php
 <?php
-    `$criteria->compare('song.name', $this->searchSong->name, true);`
+    $criteria->compare('song.name', $this->searchSong->name, true);
 ```
 
 Reference:  [ReviewController::actionCaseOne()](https://github.com/tom--/ManyMany/blob/yj-KeenLoading/protected/controllers/ReviewController.php#L11), 
