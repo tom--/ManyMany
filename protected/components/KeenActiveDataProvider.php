@@ -9,6 +9,10 @@
  * you add a 'with' option to the criteria, and the same relations are added to the 
  * 'withKeenLoading' option, they will be automatically set to select no columns. 
  * ie. array('author'=>array('select'=>false)
+ *
+ * HAS_ONE and BELONG_TO type relations shouldn't be set in withKeenLoading,
+ * but in the $criteria->with, because its more efficient to load them in the
+ * normal query.
  * 
  * There will be a CDbCriteria->group set automatically, that groups the model
  * to its own primary keys.
@@ -41,7 +45,8 @@
  * @author yJeroen <http://www.yiiframework.com/forum/index.php/user/39877-yjeroen/>
  * @author tom[] <?>
  */
-class KeenActiveDataProvider extends CActiveDataProvider {
+class KeenActiveDataProvider extends CActiveDataProvider
+{
 
 	private $_withKeenLoading = array();
 	private $_keenKeys = array();
@@ -67,7 +72,7 @@ class KeenActiveDataProvider extends CActiveDataProvider {
 	 *     'pageSize'=>20,
 	 *   ),
 	 *   'withKeenLoading'=>array(
-	 *     'author'=>array('select'=>'id, name'),
+	 *     'author'=>array('select'=>'name'),
 	 *     'comments'=>array('condition'=>'approved=1', 'order'=>'create_time'),
 	 *   )
 	 * ));
@@ -78,26 +83,30 @@ class KeenActiveDataProvider extends CActiveDataProvider {
 	 * the corresponding query options.
 	 * 
 	 * In some cases, you don't want all relations to be Keenly loaded in a single
-	 * query because of data efficiency. In that case, you can seperate relations
-	 * using a multidimensional array. (Arrays inside an array.) Each array will 
-	 * be keenly loaded in a seperate query.
+	 * query because of data efficiency. In that case, you can group relations in
+	 * multiple queries using a multidimensional array. (Arrays inside an array.)
+	 * Each array will be keenly loaded in a seperate query.
 	 * Example:
-	 * 'withKeenLoading'=>array( array('relationA','relationB),array('relationC') )
+	 * 'withKeenLoading'=>array( array('relationA','relationB'),array('relationC') )
+	 *
+	 * HAS_ONE and BELONG_TO type relations shouldn't be set in withKeenLoading,
+	 * but in the $criteria->with, because its more efficient to load them in the
+	 * normal query.
 	 * 
 	 * @param mixed the relational query criteria. This is used for fetching 
 	 * related objects in a Keen loading fashion.
 	 */
 	public function setWithKeenLoading($value)
-	{
-		if(is_string($value))
+    {
+		if(is_string($value)) {
 			$this->_withKeenLoading=explode(',',$value);
-		else
+        } else {
 			$this->_withKeenLoading=(array)$value;
-		$newWithKeen=array();
+        }
+        $newWithKeen=array();
 		foreach($this->_withKeenLoading as $k=>$v)
-		{
-			if(!(is_integer($k)&&is_array($v)))
-			{
+        {
+			if(!(is_integer($k)&&is_array($v))) {
 				unset($this->_withKeenLoading[$k]);
 				$newWithKeen[$k] = $v;
 			}
@@ -110,7 +119,8 @@ class KeenActiveDataProvider extends CActiveDataProvider {
 	 * Additionally, calls KeenActiveDataProvider::afterFetch method
 	 * @return array list of data items
 	 */
-	protected function fetchData() {
+	protected function fetchData()
+    {
 		if ($this->_withKeenLoading) {
 			$this->_prepareKeenLoading();
 		}
@@ -122,34 +132,54 @@ class KeenActiveDataProvider extends CActiveDataProvider {
 	}
 	
 	/*
-	 * Sets each of the relations in the CDbriteria::with that have also been set 
-	 * in KeenActiveDataProvider::$withKeenLoading, to the value of
+	 * Sets the relations, that are not HAS_ONE and BELONG_TO type relations,
+	 * in the CDbriteria::$with that have also been set in
+	 * KeenActiveDataProvider::$withKeenLoading, to the value of
 	 * array('select'=>false), to not unnecessarily load data. The related
 	 * data will be loaded in a Keen fashion.
 	 */
 	private function _prepareKeenLoading()
-	{
-		if(!empty($this->criteria->with))
-		{
+    {
+		if(!empty($this->criteria->with)) {
 			$this->criteria->with=(array)$this->criteria->with;
+
 			foreach((array)$this->criteria->with as $k=>$v)
-			{
-				foreach($this->_withKeenLoading as $groupedKeen)
-				{
-					foreach($groupedKeen as $keenKey=>$keenValue)
-					{
-						if(is_integer($k) && $v===$keenValue) {
-							unset($this->criteria->with[$k]);
-							$this->criteria->with[$v] = array('select'=>false);
-						}
-						elseif((is_integer($keenKey) && $k===$keenValue) || (is_string($keenKey) && $k===$keenKey)) {
-							$this->criteria->with[$k] = array('select'=>false);
-						}
-					}
-				}
+            {
+                if(is_integer($k) && (strpos($v,'.')!==false
+                    || (!$this->model->metaData->relations[$v] instanceof CHasOneRelation
+                        && !$this->model->metaData->relations[$v] instanceof CBelongsToRelation))
+                    || !is_integer($k) && (strpos($k,'.')!==false || (!$this->model->metaData->relations[$k] instanceof CHasOneRelation
+                        && !$this->model->metaData->relations[$k] instanceof CBelongsToRelation))) {
+                    foreach($this->_withKeenLoading as $groupedKeen)
+                    {
+                        foreach($groupedKeen as $keenKey=>$keenValue)
+                        {
+                            if(is_integer($k) && $v===$keenValue) {
+                                unset($this->criteria->with[$k]);
+                                $this->criteria->with[$v] = array('select'=>false);
+                            } elseif((is_integer($keenKey) && $k===$keenValue) || (is_string($keenKey) && $k===$keenKey)) {
+                                $this->criteria->with[$k] = array('select'=>false);
+                            }
+                        }
+                    }
+                } else {
+                    foreach($this->_withKeenLoading as $groupedKey=>$groupedKeen)
+                    {
+                        foreach($groupedKeen as $keenKey=>$keenValue)
+                        {
+                            if(is_integer($k) && $v===$keenValue) {
+                                unset($this->_withKeenLoading[$groupedKey][$keenKey]);
+                            } elseif((is_integer($keenKey) && $k===$keenValue) || (is_string($keenKey) && $k===$keenKey)) {
+                                unset($this->_withKeenLoading[$groupedKey][$keenKey]);
+                            }
+                        }
+                    }
+                }
 			}
+
 			$pkNames = (array)$this->model->tableSchema->primaryKey;
-			foreach($pkNames as $k=>$v) {
+			foreach($pkNames as $k=>$v)
+            {
 				$pkNames[$k] = $this->model->tableAlias.'.'.$v;
 			}
 			$this->criteria->group = implode(',',$pkNames);
@@ -163,11 +193,13 @@ class KeenActiveDataProvider extends CActiveDataProvider {
 	 * and the value will be an array of the primary key values of the models that have 
 	 * been loaded by CActiveDataProvider::fetchData()
 	 */
-	private function _loadKeys($data) {
+	private function _loadKeys($data)
+    {
 		$pks = array();
 		foreach((array)$this->model->tableSchema->primaryKey as $pkName)
 		{
-			foreach ($data as $dataItem) {
+			foreach ($data as $dataItem)
+            {
 				$pks[$pkName][] = $dataItem->$pkName;
 			}
 		}
@@ -177,39 +209,42 @@ class KeenActiveDataProvider extends CActiveDataProvider {
 	/**
 	 * Loads additional related data in bulk, instead of each model lazy loading its related data
 	 * @param array $data An array of models returned by CActiveDataProvider::fetchData()
+     * @var CActiveRecord $relatedModel
 	 * @return array $data An array of models with related data Keenly loaded.
 	 */
-	protected function afterFetch($data) {
+	protected function afterFetch($data)
+    {
 		
 		$pks = $this->_loadKeys($data);
 		foreach($this->_withKeenLoading as $keenGroup)
 		{
-			$relatedModels = $this->model->findAllByAttributes($pks,
-								array('select'=>$this->criteria->group, 'with'=>$keenGroup)
-			);
+            if(!empty($keenGroup)) {
+                $relatedModels = $this->model->findAllByAttributes($pks,
+                    array('select'=>$this->criteria->group, 'with'=>$keenGroup)
+                );
+                foreach($data as $model)
+                {
+                    foreach($relatedModels as $relatedModel)
+                    {
+                        $same = false;
+                        foreach((array)$this->model->tableSchema->primaryKey as $pkName)
+                        {
+                            if($model->$pkName===$relatedModel->$pkName) {
+                                $same = true;
+                            }
+                        }
+                        if($same===true) {
+                            foreach($this->model->metaData->relations as $relation)
+                            {
+                                if($relatedModel->hasRelated($relation->name)) {
+                                    $model->{$relation->name} = $relatedModel->{$relation->name};
+                                }
+                            }
+                        }
+                    }
+                }
+            }
 		}
-		foreach($data as $model)
-		{
-			foreach($relatedModels as $relatedModel)
-			{
-				$same = false;
-				foreach((array)$this->model->tableSchema->primaryKey as $pkName)
-				{
-					if($model->$pkName===$relatedModel->$pkName)
-						$same = true;
-				}
-				if($same===true)
-				{
-					foreach($this->model->metaData->relations as $relation)
-					{
-						if($relatedModel->hasRelated($relation->name))
-							$model->{$relation->name} = $relatedModel->{$relation->name};
-					}
-				}
-				
-			}
-		}
-		
 		return $data;
 	}
 }
