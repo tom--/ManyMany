@@ -1,14 +1,15 @@
-# ManyMany: A Yii app for experimenting with complex grid views
+# ManyMany
+## A Yii app for experimenting with complex grid views
 
 The app shows four ways of implementing the loading of related data in a gridview.
 
-All gridviews have working implementations of [paging, sorting and filtering](#cgridview-paging-sorting-and-filtering).
+All gridviews have working implementations of [paging, sorting and filtering](#1-cgridview-paging-sorting-and-filtering).
 
-1. **[UseCase One](#usecase-one---lazy-loading)**: Only primary data is loaded with the `CActiveDataProvider`, related data is Lazy loaded.
-2. **[UseCase Two](#usecase-two---group_concat)**: Related data is loaded using a GROUP_CONCAT query. This is the most data efficient way, but you can't do any manipulation using the join-model or related-model.
-3. **[UseCase Three](#usecase-two---group_concat)**: You normally can't use Yii's Eager Loading method in gridviews in combination with a pager. (If you don't use the pager, you can Eager load without problems.)   
+1. **[UseCase One](#21-usecase-one---lazy-loading)**: Only primary data is loaded with the `CActiveDataProvider`, related data is Lazy loaded.
+2. **[UseCase Two](#22-usecase-two---group_concat)**: Related data is loaded using a GROUP_CONCAT query. This is the most data efficient way, but you can't do any manipulation using the join-model or related-model.
+3. **[UseCase Three](#23-usecase-three---custom-cactivefinder)**: You normally can't use Yii's Eager Loading method in gridviews in combination with a pager. (If you don't use the pager, you can Eager load without problems.)   
  The reason why it won't work with the pager is because the pager adds LIMIT and OFFSET to the query, but those are static. In combination with JOIN statements, this becomes a problem. I made some changes to _CActiveFinder_ so the correct LIMIT and OFFSET numbers are calculated using two seperate COUNT queries. This will enable you to use Yii's Eager loading without any problems.
-4. **[UseCase Four - KeenLoading](#usecase-four---keenloading)**: This method uses a custom `KeenActiveDataProvider`, which loads all related data in a Keen way using a seperate query.
+4. **[UseCase Four - KeenLoading](#24-usecase-four---keenloading)**: This method uses a custom `KeenActiveDataProvider`, which loads all related data in a Keen way using a seperate query.
 
 With these four methods, it might be hard to choose which one to use. Here are some considerations:
 
@@ -30,6 +31,7 @@ With these four methods, it might be hard to choose which one to use. Here are s
     Pro: Able to manipulate data of the related Model(s)  
     Pro: Still very efficient  
     Neutral: One extra query for loading the related Model(s)  
+
 
 ---
 
