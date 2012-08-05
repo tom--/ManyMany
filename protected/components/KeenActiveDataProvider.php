@@ -98,14 +98,14 @@ class KeenActiveDataProvider extends CActiveDataProvider
     public function setWithKeenLoading($value)
     {
         if(is_string($value)) {
-            $this->_withKeenLoading=explode(',',$value);
+            $this->_withKeenLoading = explode(',', $value);
         } else {
-            $this->_withKeenLoading=(array)$value;
+            $this->_withKeenLoading = (array)$value;
         }
-        $newWithKeen=array();
+        $newWithKeen = array();
         foreach($this->_withKeenLoading as $k=>$v)
         {
-            if(!(is_integer($k)&&is_array($v))) {
+            if(!(is_integer($k) && is_array($v))) {
                 unset($this->_withKeenLoading[$k]);
                 $newWithKeen[$k] = $v;
             }
@@ -140,23 +140,24 @@ class KeenActiveDataProvider extends CActiveDataProvider
     private function _prepareKeenLoading()
     {
         if(!empty($this->criteria->with)) {
-            $this->criteria->with=(array)$this->criteria->with;
+            $this->criteria->with = (array)$this->criteria->with;
 
             foreach((array)$this->criteria->with as $k=>$v)
             {
-                if(is_integer($k) && (strpos($v,'.')!==false
+                if(is_integer($k) && (strpos($v,'.') !== false
                     || (!$this->model->metaData->relations[$v] instanceof CHasOneRelation
                         && !$this->model->metaData->relations[$v] instanceof CBelongsToRelation))
-                    || !is_integer($k) && (strpos($k,'.')!==false || (!$this->model->metaData->relations[$k] instanceof CHasOneRelation
+                    || !is_integer($k) && (strpos($k,'.') !== false 
+                    || (!$this->model->metaData->relations[$k] instanceof CHasOneRelation
                         && !$this->model->metaData->relations[$k] instanceof CBelongsToRelation))) {
                     foreach($this->_withKeenLoading as $groupedKeen)
                     {
                         foreach($groupedKeen as $keenKey=>$keenValue)
                         {
-                            if(is_integer($k) && $v===$keenValue) {
+                            if(is_integer($k) && $v === $keenValue) {
                                 unset($this->criteria->with[$k]);
                                 $this->criteria->with[$v] = array('select'=>false);
-                            } elseif((is_integer($keenKey) && $k===$keenValue) || (is_string($keenKey) && $k===$keenKey)) {
+                            } elseif((is_integer($keenKey) && $k === $keenValue) || (is_string($keenKey) && $k === $keenKey)) {
                                 $this->criteria->with[$k] = array('select'=>false);
                             }
                         }
@@ -166,9 +167,9 @@ class KeenActiveDataProvider extends CActiveDataProvider
                     {
                         foreach($groupedKeen as $keenKey=>$keenValue)
                         {
-                            if(is_integer($k) && $v===$keenValue) {
+                            if(is_integer($k) && $v === $keenValue) {
                                 unset($this->_withKeenLoading[$groupedKey][$keenKey]);
-                            } elseif((is_integer($keenKey) && $k===$keenValue) || (is_string($keenKey) && $k===$keenKey)) {
+                            } elseif((is_integer($keenKey) && $k === $keenValue) || (is_string($keenKey) && $k === $keenKey)) {
                                 unset($this->_withKeenLoading[$groupedKey][$keenKey]);
                             }
                         }
@@ -181,7 +182,7 @@ class KeenActiveDataProvider extends CActiveDataProvider
             {
                 $pkNames[$k] = $this->model->tableAlias.'.'.$v;
             }
-            $this->criteria->group = implode(',',$pkNames);
+            $this->criteria->group = implode(',', $pkNames);
         }
     }
 
@@ -212,13 +213,13 @@ class KeenActiveDataProvider extends CActiveDataProvider
      */
     protected function afterFetch($data)
     {
-
         $pks = $this->_loadKeys($data);
         foreach($this->_withKeenLoading as $keenGroup)
         {
             if(!empty($keenGroup)) {
                 $relatedModels = $this->model->findAllByAttributes($pks,
-                    array('select'=>$this->criteria->group, 'with'=>$keenGroup)
+                    array('select'=>$this->criteria->group,
+                          'with'=>$keenGroup)
                 );
                 foreach($data as $model)
                 {
@@ -228,11 +229,11 @@ class KeenActiveDataProvider extends CActiveDataProvider
                         $same = false;
                         foreach((array)$this->model->tableSchema->primaryKey as $pkName)
                         {
-                            if($model->$pkName===$relatedModel->$pkName) {
+                            if($model->$pkName === $relatedModel->$pkName) {
                                 $same = true;
                             }
                         }
-                        if($same===true) {
+                        if($same === true) {
                             foreach($this->model->metaData->relations as $relation)
                             {
                                 if($relatedModel->hasRelated($relation->name)) {
