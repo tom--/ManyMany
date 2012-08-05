@@ -1,8 +1,4 @@
-ManyMany
-====
-
-A Yii app for experimenting with complex grid views
-----
+# ManyMany: A Yii app for experimenting with complex grid views
 
 The app shows four ways of implementing the loading of related data in a gridview.
 
@@ -37,15 +33,17 @@ With these four methods, it might be hard to choose which one to use. Here are s
 
 ---
 
-### CGridView: Paging, Sorting and Filtering
-
+1. CGridView: Paging, Sorting and Filtering
+---------
 _[to be added]_  
 
 
 
----
 
-### UseCase One - Lazy Loading
+2. UseCases
+---------
+
+### 2.1 UseCase One - Lazy Loading
 
 **Files/Methods**
 - models/Review::searchOne()
@@ -58,8 +56,8 @@ You group the primary keys of Review, and set together to true. You don't select
 Because you're grouping the primary keys, the database returns only one row for each primary Model. This is why the pager doesn't break even though you set `$criteria->together` to `true`.  
 Additionally, make sure to set the relations in `$criteria->with` that are lazy loaded to `array('select'=>false)`. This is more efficient since you're loading this data in a lazy way, so you don't need it in the first `SELECT` that the `CActiveDataProvider` performs..  
 
----
-### UseCase Two - GROUP_CONCAT
+
+### 2.2 UseCase Two - GROUP_CONCAT
 
 **Files/Methods**
 - models/Review::searchTwo()
@@ -81,8 +79,8 @@ An example:
 ```
 _Note: In addition, you can look at _caseTwoGrid.php to see how you can use a dropDownList in a gridview filter to search for a genre._  
 
----
-### UseCase Three - Custom CActiveFinder
+
+### 2.3 UseCase Three - Custom CActiveFinder
 
 **Files/Methods**
 - extensions/classMap/CActiveFinder
@@ -100,8 +98,8 @@ The extra COUNT queries will only be performed when:
 3. $criteria->group has been set
 4. $criteria->together has been set to true  
 
----
-### UseCase Four - KeenLoading
+
+### 2.4 UseCase Four - KeenLoading
 
 **Files/Methods**
 - components/KeenActiveDataProvider
@@ -125,8 +123,8 @@ An example:
 _Note: In addition, you can look at Song::search() to see how you can enable the gridviews filter to search for multiple Genres using a comma or space in the input field._  
 
 
----
-###Extra: Full explenation of KeenActiveDataProvider
+3. Extra: Full explenation of KeenActiveDataProvider
+---------
 KeenActiveDataProvider implements a data provider based on ActiveRecord and is extended from CActiveDataProvider.
 
 KeenActiveDataProvider provides data in terms of ActiveRecord objects. It uses 
@@ -135,6 +133,10 @@ The criteria property can be used to specify various query options. If
 you add a 'with' option to the criteria, and the same relations are added to the 
 'withKeenLoading' option, they will be automatically set to select no columns.  
 ie. `array('author'=>array('select'=>false)`
+
+HAS_ONE and BELONG_TO type relations shouldn't be set in withKeenLoading, 
+but in the $criteria->with, because its more efficient to load them in the 
+normal query.
 
 There will be a `CDbCriteria->group` set automatically, that groups the model
 to its own primary keys.
