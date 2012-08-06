@@ -105,9 +105,9 @@ In the Controller, we have to catch the send data and place it into the $song mo
     }
 ```
 
-Now we have to go to the place where CGridView's searching magic actually happens, the method in the main Model that providers a DataProvider to the CGridView.
+Now we have to go to the place where CGridView's searching magic actually happens, the method (usually `$model->search()`) in the main Model that providers a DataProvider to the CGridView.
 
-Here, we simply add extra `$criteria->compare()`'s for the column we want to filter. We use the model inside the $searchXxx property to make this work, since we added the searched value in there earlier in the Controller.
+Here, we simply add extra `$criteria->compare()`'s for the column we want to filter. We use the model inside the $searchXxx property to make this work, since we added the searched value earlier in the Controller.
 ```php
 <?php
     $criteria->compare('song.name', $this->searchSong->name, true);
