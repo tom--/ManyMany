@@ -54,7 +54,7 @@ Reference: [Review::searchOne()](https://github.com/tom--/ManyMany/blob/yj-KeenL
 ### 1.2 Sorting
 When you have a column in your CGridView that isn't an attribute of the model, Yii doesn't automatically know how to sort. But we can tell the `sort` parameter of the CActiveDataProvider how.  
 First, you have one or more columns in the View that show related data. Those columns have a 'name' attribute  
-(example: `'name' => 'song.album',`), and we have to tell Yii how to sort that song's attribute called album.
+(example: `array('name' => 'song.album'),`), and we have to tell Yii how to sort that song's attribute called album.
 
 You have to add the attribute called `song.album` to the attributes array of 'sort'. Then you tell Yii how to sort that attribute ascending, and descending. Like this:
 ```php
@@ -199,7 +199,7 @@ An example:
 	));
 ```
 _Note: In addition, you can look at Song::search() to see how you can enable the gridviews filter to search for multiple Genres using a comma or space in the input field._  
-
+_2nd Note: You can also look at SongController::setSearchInputs() to take a look at a method that generalizes a way to set search inputs._  
 
 3. Extra: Full explanation of KeenActiveDataProvider
 ---------
