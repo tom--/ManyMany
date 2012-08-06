@@ -54,7 +54,7 @@ Reference: [Review::searchOne()](https://github.com/tom--/ManyMany/blob/yj-KeenL
 ### 1.2 Sorting
 When you have a column in your CGridView that isn't an attribute of the model, Yii doesn't automatically know how to sort. But we can tell the `sort` parameter of the CActiveDataProvider how.  
 First, you have one or more columns in the View that show related data. Those columns have a 'name' attribute  
-(example: `array('name' => 'song.album'),`), and we have to tell Yii how to sort that song's attribute called album.
+(example: `array('name' => 'song.album')`), and we have to tell Yii how to sort that song's attribute called album.
 
 You have to add the attribute called `song.album` to the attributes array of 'sort'. Then you tell Yii how to sort that attribute ascending, and descending. Like this:
 ```php
@@ -77,9 +77,9 @@ Reference:  [views/review/_caseOneGrid](https://github.com/tom--/ManyMany/blob/y
 
 
 ### 1.3 Filtering
-This one will be a little bit more complex to implement. Think of the filters on the top of the CGridView as normal <INPUT> fields (because they are!), just like you would make them with `CHtml::activeTextField($review, 'review')`. Now of course, such a textfield wants a $model in the first parameter, and an attribute name in the second parameter.
+This one will be a little bit more complex to implement. Think of the filters on the top of the CGridView as normal \<INPUT\> fields (because they are!), just like you would make them with `CHtml::activeTextField($review, 'review')`. Now of course, such a textfield wants a $model in the first parameter, and an attribute name in the second parameter.
 
-We are going to base the filter's <INPUT> field on the related Model. The advantage of this is that you keep Yii's default functionality, like validation of the input.
+We are going to base the filter's \<INPUT\> field on the related Model. The advantage of this is that you keep Yii's default functionality, like validation of the input.
 
 First, in the Controller, we create such a model for the column with the related data: `$song   = new Song('search');`  
 Then we unset its attributes, just like we do for the main model: `$song->unsetAttributes();`
@@ -95,7 +95,7 @@ In the view, we create a column with a self defined filter, like this:
 		'filter' => CHtml::activeTextField($review->searchSong, 'name'),
 	),
 ```
-As you can see, we pass the Song model into the first parameter, and an attribute of that model into the second parameter. So far, so good.. If we refresh the page it shows an <INPUT> field on top of the column and we can type in there. But what happens if we type and then press _ENTER_? A submit action will be performed back to the Controller.
+As you can see, we pass the Song model into the first parameter, and an attribute of that model into the second parameter. So far, so good.. If we refresh the page it shows an \<INPUT\> field on top of the column and we can type in there. But what happens if we type and then press _ENTER_? A submit action will be performed back to the Controller.
 
 In the Controller, we have to catch the send data and place it into the $song model. We do that in the same way as you'd do that for the main Model:
 ```php
