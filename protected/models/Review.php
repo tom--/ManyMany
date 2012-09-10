@@ -14,7 +14,7 @@ class Review extends CActiveRecord {
 	public $searchSong;
 	public $searchGenre;
 	public $allGenres;
-	
+
 	public static function model($className = __CLASS__) {
 		return parent::model($className);
 	}

@@ -14,7 +14,7 @@ return call_user_func(
 		/** @var string[] $extras List of paths to subsidiary config files */
 		$extras = array(
 			__DIR__ . '/local.php',
-			__DIR__ . '/passwords.php'
+			__DIR__ . '/passwords.php',
 		);
 
 		/** @var array $cfg The application's base configuration */

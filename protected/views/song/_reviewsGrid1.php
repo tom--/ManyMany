@@ -11,12 +11,26 @@
 
 
 $columns = array(
+    array(
+        'header' => '',
+        'value' => '"$data->song_id,$data->reviewer_id"',
+        'htmlOptions' => array(
+            'style' => 'display:none',
+        ),
+        'headerHtmlOptions' => array(
+            'style' => 'display:none',
+        ),
+    ),
 	array(
 		'header' => 'Num',
 		'value' => Help::$gridRowExp,
 	),
 	array(
 		'name' => 'review',
+        'htmlOptions' => array(
+            'contenteditable' => 'true',
+        ),
+        'cssClassExpression' => '"review"',
 	),
 	array(
 		'name' => 'song.name',
