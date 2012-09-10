@@ -41,7 +41,7 @@
  * @author tom[] <?>
  */
 class KeenActiveDataProvider extends CActiveDataProvider {
-	
+
 	/**
 	 * The relations that the data provider loads "keenly".
 	 *
@@ -82,8 +82,10 @@ class KeenActiveDataProvider extends CActiveDataProvider {
 	 */
 	public $keenWith;
 
+	/**
+	 * @var array Normalized internal version of the user supplied $keenWith config.
+	 */
 	private $_keenWith = array();
-	private $_keenKeys = array();
 
 	/**
 	 * Fetches the data from the persistent data storage.
@@ -110,6 +112,16 @@ class KeenActiveDataProvider extends CActiveDataProvider {
 	}
 
 	/**
+	 * @param $relation mixed
+	 * @return bool
+	 */
+	private function _isMultiRelation($relation) {
+		return (strpos($relation, '.') !== false
+			|| (!$this->model->metaData->relations[$relation] instanceof CHasOneRelation
+				&& !$this->model->metaData->relations[$relation] instanceof CBelongsToRelation));
+	}
+
+	/**
 	 * Modify the DP's criteria to:
 	 *  - disable eager loading of keen loading relations
 	 *  - group by rows in the main model.
@@ -128,21 +140,35 @@ class KeenActiveDataProvider extends CActiveDataProvider {
 		}
 		$this->_keenWith[] = $newWithKeen;
 
-		// Sets each of the relations in the CDbriteria::$with that have also been set
-		// in KeenActiveDataProvider::$keenWith, to the value of
-		// array('select'=>false), to not unnecessarily load data.
 		if ($this->criteria->with) {
 			$this->criteria->with = (array) $this->criteria->with;
+			// Don't load relations in both $this->criteria->with and $this->keenWith.
+			// Setting a relation's 'select' option false defeats normal CADP loading.
 			foreach ($this->criteria->with as $k => $v) {
-				foreach ($this->_keenWith as $groupedKeen) {
-					foreach ($groupedKeen as $keenKey => $keenValue) {
-						if (is_integer($k) && $v === $keenValue) {
-							unset($this->criteria->with[$k]);
-							$this->criteria->with[$v] = array('select' => false);
-						} elseif ((is_integer($keenKey) && $k === $keenValue)
-							|| (is_string($keenKey) && $k === $keenKey)
-						) {
-							$this->criteria->with[$k] = array('select' => false);
+				if ((is_integer($k) && $this->_isMultiRelation($v))
+					|| (!is_integer($k) && $this->_isMultiRelation($k))
+				) {
+					foreach ($this->_keenWith as $groupedKeen) {
+						foreach ($groupedKeen as $keenKey => $keenValue) {
+							if (is_integer($k) && $v === $keenValue) {
+								unset($this->criteria->with[$k]);
+								$this->criteria->with[$v] = array('select' => false);
+							} elseif ((is_integer($keenKey) && $k === $keenValue)
+								|| (is_string($keenKey) && $k === $keenKey)
+							) {
+								$this->criteria->with[$k] = array('select' => false);
+							}
+						}
+					}
+				} else {
+					foreach ($this->_keenWith as $groupedKey => $groupedKeen) {
+						foreach ($groupedKeen as $keenKey => $keenValue) {
+							if ((is_integer($k) && $v === $keenValue)
+								|| (is_integer($keenKey) && $k === $keenValue)
+								|| (is_string($keenKey) && $k === $keenKey)
+							) {
+								unset($this->_keenWith[$groupedKey][$keenKey]);
+							}
 						}
 					}
 				}
