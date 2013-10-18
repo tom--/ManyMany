@@ -1,3 +1,8 @@
+**Obsolete.** A more up-to-date, complete and better documented version of this project can
+be found at 
+[Displaying, sorting and filtering HasMany & ManyMany relations in CGridView](http://www.yiiframework.com/wiki/385/displaying-sorting-and-filtering-hasmany-manymany-relations-in-cgridview).
+
+
 # ManyMany
 ## A Yii app for experimenting with complex grid views
 
